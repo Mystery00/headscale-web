@@ -39,6 +39,13 @@ export const zhCN = {
   },
   users: {
     title: '用户',
+    description: '创建和管理拥有 Headscale 节点的身份。',
+    createTitle: '创建用户',
+    deleteTitle: '删除用户',
+    confirmDelete: '确认删除',
+    dangerZone: '危险操作',
+    deleteHint: '该用户当前关联 {count} 个节点。',
+    deleteMessage: '确定删除 {name}？该用户当前关联 {count} 个节点，此操作无法撤销。',
     name: '名称',
     displayName: '显示名',
     email: '邮箱',

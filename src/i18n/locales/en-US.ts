@@ -100,6 +100,14 @@ export const enUS = {
   },
   users: {
     title: 'Users',
+    description: 'Create and manage identities that own Headscale nodes.',
+    createTitle: 'Create user',
+    deleteTitle: 'Delete user',
+    confirmDelete: 'Confirm delete',
+    dangerZone: 'Danger zone',
+    deleteHint: 'This user currently owns {count} nodes.',
+    deleteMessage:
+      'Delete {name}? This user currently owns {count} nodes and this action cannot be undone.',
     name: 'Name',
     displayName: 'Display name',
     email: 'Email',
