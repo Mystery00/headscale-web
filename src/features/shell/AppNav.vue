@@ -24,6 +24,10 @@ const options = computed(() => [
     label: () => h(RouterLink, { to: '/preauth-keys' }, { default: () => t('nav.preAuthKeys') }),
     key: '/preauth-keys',
   },
+  {
+    label: () => h(RouterLink, { to: '/settings' }, { default: () => t('nav.settings') }),
+    key: '/settings',
+  },
 ])
 </script>
 

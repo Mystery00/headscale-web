@@ -1,7 +1,15 @@
-import { QueryClient } from '@tanstack/vue-query'
+import { QueryCache, QueryClient } from '@tanstack/vue-query'
+import { AppApiError } from '@/api/errors'
 
-export function createAppQueryClient(): QueryClient {
+export function createAppQueryClient(options?: { onUnauthorized?: () => void }): QueryClient {
   return new QueryClient({
+    queryCache: new QueryCache({
+      onError(error) {
+        if (error instanceof AppApiError && error.kind === 'unauthorized') {
+          options?.onUnauthorized?.()
+        }
+      },
+    }),
     defaultOptions: {
       queries: {
         staleTime: 5_000,

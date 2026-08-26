@@ -9,6 +9,7 @@ export const enUS = {
     routes: 'Routes',
     preAuthKeys: 'PreAuth Keys',
     menu: 'Menu',
+    settings: 'Settings',
   },
   connection: {
     title: 'Connect to Headscale',
@@ -155,4 +156,14 @@ export const enUS = {
     expiringKeyList: 'Expiring PreAuth keys',
     unapprovedRoutes: 'Advertised but not approved',
   },
+  settings: {
+    title: 'Settings',
+    polling: 'Automatic polling',
+    interval: 'Polling interval',
+    dateStyle: 'Date and time',
+    absolute: 'Absolute',
+    relative: 'Relative',
+    test: 'Test connection',
+  },
 }
+

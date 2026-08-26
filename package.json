@@ -20,7 +20,8 @@
     "api:fetch": "node scripts/fetch-headscale-swagger.mjs",
     "api:convert": "swagger2openapi --outfile specs/headscale.openapi.json specs/headscale.swagger.json",
     "api:generate": "openapi-typescript specs/headscale.openapi.json -o src/api/generated/headscale.ts",
-    "api:check": "pnpm api:convert && pnpm api:generate && git diff --exit-code -- specs/headscale.openapi.json src/api/generated/headscale.ts"
+    "api:check": "pnpm api:convert && pnpm api:generate && git diff --exit-code -- specs/headscale.openapi.json src/api/generated/headscale.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@lucide/vue": "^1.34.0",
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
     "@testing-library/vue": "^8.1.0",
     "@types/node": "^26.3.0",
     "@vitejs/plugin-vue": "^6.0.8",

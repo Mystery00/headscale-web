@@ -13,11 +13,16 @@ const pinia = createPinia()
 setActivePinia(pinia)
 credentialStore.hydrate()
 const settings = useSettingsStore()
+const router = createAppRouter()
+const queryClient = createAppQueryClient({
+  onUnauthorized() {
+    queryClient.clear()
+    void router.push('/connect')
+  },
+})
 const app = createApp(App)
 app.use(pinia)
 app.use(createAppI18n(settings.locale))
-app.use(createAppRouter())
-app.use(VueQueryPlugin, {
-  queryClient: createAppQueryClient(),
-})
+app.use(router)
+app.use(VueQueryPlugin, { queryClient })
 app.mount('#app')

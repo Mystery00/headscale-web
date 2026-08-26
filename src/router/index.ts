@@ -5,6 +5,7 @@ import NodesPage from '@/features/nodes/NodesPage.vue'
 import PreAuthKeysPage from '@/features/preauth-keys/PreAuthKeysPage.vue'
 import RoutesPage from '@/features/routes/RoutesPage.vue'
 import AppShell from '@/features/shell/AppShell.vue'
+import SettingsPage from '@/features/settings/SettingsPage.vue'
 import UsersPage from '@/features/users/UsersPage.vue'
 import { requireConnection } from '@/router/guards'
 
@@ -22,6 +23,7 @@ export function createAppRouter() {
           { path: 'nodes', component: NodesPage },
           { path: 'routes', component: RoutesPage },
           { path: 'preauth-keys', component: PreAuthKeysPage },
+          { path: 'settings', component: SettingsPage },
         ],
       },
     ],

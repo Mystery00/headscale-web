@@ -9,6 +9,7 @@ export const zhCN = {
     routes: '路由',
     preAuthKeys: 'PreAuth Keys',
     menu: '菜单',
+    settings: '设置',
   },
   common: {
     loading: '加载中',
@@ -112,6 +113,15 @@ export const zhCN = {
     unapprovedRoutes: '已通告未审批',
   },
 
+  settings: {
+    title: '设置',
+    polling: '自动轮询',
+    interval: '轮询间隔',
+    dateStyle: '日期时间',
+    absolute: '绝对时间',
+    relative: '相对时间',
+    test: '测试连接',
+  },
   connection: {
     title: '连接 Headscale',
     urlLabel: 'Headscale 地址',
