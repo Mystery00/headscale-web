@@ -29,12 +29,15 @@ const themeOptions = computed(() => [
 
 const versionLabel = computed(() => versionQuery.data.value?.version ?? '—')
 const databaseConnected = computed(() => Boolean(healthQuery.data.value?.databaseConnectivity))
+const healthUnavailable = computed(
+  () => healthQuery.isError.value || healthQuery.data.value === undefined,
+)
 const databaseLabel = computed(() => {
-  if (healthQuery.isError.value) return t('common.unavailable')
+  if (healthUnavailable.value) return t('common.unavailable')
   return databaseConnected.value ? t('shell.databaseConnected') : t('shell.databaseDisconnected')
 })
 const databaseTone = computed(() =>
-  healthQuery.isError.value ? 'neutral' : databaseConnected.value ? 'success' : 'danger',
+  healthUnavailable.value ? 'neutral' : databaseConnected.value ? 'success' : 'danger',
 )
 const instanceLabel = computed(() => settings.baseUrl ?? '—')
 

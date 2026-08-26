@@ -48,6 +48,29 @@ describe('UsersPage', () => {
     )
   })
 
+  it('closes an open delete confirmation when the related-node query fails', async () => {
+    const { queryClient } = await renderConnected('/users', UsersPage)
+    await fireEvent.click(await screen.findByRole('button', { name: 'Details' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+    await fireEvent.update(screen.getByLabelText('Type the user name to confirm'), 'alice')
+    expect(
+      (screen.getByRole('button', { name: 'Confirm delete' }) as HTMLButtonElement).disabled,
+    ).toBe(false)
+
+    server.use(
+      http.get('http://hs.example.com/api/v1/node', () =>
+        HttpResponse.json({ message: 'failed' }, { status: 500 }),
+      ),
+    )
+    await queryClient.invalidateQueries({ queryKey: queryKeys.nodes() })
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Delete user' })).toBeNull()
+    })
+    expect((screen.getByRole('button', { name: 'Delete' }) as HTMLButtonElement).disabled).toBe(
+      true,
+    )
+  })
+
   it('uses the configured relative date style', async () => {
     await renderConnected('/users', UsersPage)
     useSettingsStore().update({ dateTimeStyle: 'relative' })

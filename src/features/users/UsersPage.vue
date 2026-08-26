@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, h, ref } from 'vue'
+import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   NButton,
@@ -63,11 +63,15 @@ const filtered = computed(() => {
   })
 })
 const relatedNodeCount = computed(() =>
-  nodes.isError.value
-    ? null
-    : (nodes.data.value?.filter((node) => node.user.id === selected.value?.id).length ?? 0),
+  nodes.isSuccess.value
+    ? (nodes.data.value?.filter((node) => node.user.id === selected.value?.id).length ?? 0)
+    : null,
 )
 const relatedNodeCountLabel = computed(() => relatedNodeCount.value ?? t('common.unavailable'))
+
+watch(relatedNodeCount, (count) => {
+  if (count === null) confirmDelete.value = false
+})
 
 function retryRequiredQueries() {
   void Promise.all([query.refetch(), nodes.refetch()])
@@ -143,7 +147,7 @@ async function onRename() {
 }
 
 async function onDelete() {
-  if (!selected.value) return
+  if (!selected.value || relatedNodeCount.value === null) return
   try {
     await deleteUser.mutateAsync(selected.value.id)
     message.success(t('common.success'))
@@ -289,7 +293,7 @@ async function onDelete() {
     </NDrawer>
 
     <ConfirmDialog
-      v-if="selected"
+      v-if="selected && relatedNodeCount !== null"
       v-model:show="confirmDelete"
       :title="t('users.deleteTitle')"
       :message="t('users.deleteMessage', { name: selected.name, count: relatedNodeCountLabel })"

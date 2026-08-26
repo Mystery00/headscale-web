@@ -46,6 +46,9 @@ const loading = computed(
     versionQuery.isLoading.value ||
     healthQuery.isLoading.value,
 )
+const healthUnavailable = computed(
+  () => healthQuery.isError.value || healthQuery.data.value === undefined,
+)
 const hasError = computed(
   () =>
     usersQuery.isError.value ||
@@ -102,9 +105,17 @@ const cards = computed(() => [
   },
   {
     label: t('shell.databaseConnected'),
-    value: healthQuery.data.value?.databaseConnectivity ? t('common.yes') : t('common.no'),
+    value: healthUnavailable.value
+      ? t('common.unavailable')
+      : healthQuery.data.value?.databaseConnectivity
+        ? t('common.yes')
+        : t('common.no'),
     icon: Database,
-    tone: healthQuery.data.value?.databaseConnectivity ? ('success' as const) : ('danger' as const),
+    tone: healthUnavailable.value
+      ? ('neutral' as const)
+      : healthQuery.data.value?.databaseConnectivity
+        ? ('success' as const)
+        : ('danger' as const),
   },
   { label: t('dashboard.users'), value: String(usersQuery.data.value?.length ?? 0), icon: Users },
   { label: t('dashboard.nodes'), value: String(nodes.value.length), icon: Network },
@@ -182,11 +193,19 @@ const cards = computed(() => [
             </div>
             <StatusBadge
               :label="
-                healthQuery.data.value?.databaseConnectivity
-                  ? t('shell.databaseConnected')
-                  : t('shell.databaseDisconnected')
+                healthUnavailable
+                  ? t('common.unavailable')
+                  : healthQuery.data.value?.databaseConnectivity
+                    ? t('shell.databaseConnected')
+                    : t('shell.databaseDisconnected')
               "
-              :tone="healthQuery.data.value?.databaseConnectivity ? 'success' : 'danger'"
+              :tone="
+                healthUnavailable
+                  ? 'neutral'
+                  : healthQuery.data.value?.databaseConnectivity
+                    ? 'success'
+                    : 'danger'
+              "
             />
           </header>
           <dl class="network-list">
