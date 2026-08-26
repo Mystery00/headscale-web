@@ -30,7 +30,10 @@ const themeOptions = computed(() => [
 const versionLabel = computed(() => versionQuery.data.value?.version ?? '—')
 const databaseConnected = computed(() => Boolean(healthQuery.data.value?.databaseConnectivity))
 const healthUnavailable = computed(
-  () => healthQuery.isError.value || healthQuery.data.value === undefined,
+  () =>
+    healthQuery.isError.value ||
+    healthQuery.data.value === undefined ||
+    healthQuery.data.value.databaseConnectivity === undefined,
 )
 const databaseLabel = computed(() => {
   if (healthUnavailable.value) return t('common.unavailable')

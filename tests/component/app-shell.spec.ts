@@ -147,6 +147,13 @@ describe('AppShell', () => {
     expect(screen.queryByText('Database disconnected')).toBeNull()
   })
 
+  it('reports an unavailable database status when the health field is omitted', async () => {
+    server.use(http.get('http://hs.example.com/api/v1/health', () => HttpResponse.json({})))
+    await renderShell('/')
+    expect((await screen.findAllByText('Unavailable')).length).toBeGreaterThan(0)
+    expect(screen.queryByText('Database disconnected')).toBeNull()
+  })
+
   it('reports an unavailable database status when the health read fails', async () => {
     server.use(
       http.get('http://hs.example.com/api/v1/health', () =>

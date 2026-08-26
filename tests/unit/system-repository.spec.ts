@@ -56,6 +56,22 @@ describe('system repository', () => {
     expect(status.checkedAt).toBeInstanceOf(Date)
   })
 
+  it('preserves an omitted database connectivity field as unavailable', async () => {
+    server.use(http.get(`${BASE_URL}/api/v1/health`, () => HttpResponse.json({})))
+    const { repo } = createRepo()
+    await expect(repo.getHealth()).resolves.toEqual({ databaseConnectivity: undefined })
+  })
+
+  it('preserves an explicit disconnected database state', async () => {
+    server.use(
+      http.get(`${BASE_URL}/api/v1/health`, () =>
+        HttpResponse.json({ databaseConnectivity: false }),
+      ),
+    )
+    const { repo } = createRepo()
+    await expect(repo.getHealth()).resolves.toEqual({ databaseConnectivity: false })
+  })
+
   it('does not call health or user for unsupported versions', async () => {
     const laterCalls: string[] = []
     server.use(

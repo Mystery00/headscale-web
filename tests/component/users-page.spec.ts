@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { fireEvent, screen, waitFor } from '@testing-library/vue'
-import { http, HttpResponse } from 'msw'
+import { delay, http, HttpResponse } from 'msw'
 import UsersPage from '@/features/users/UsersPage.vue'
 import { queryKeys } from '@/query/keys'
 import { useSettingsStore } from '@/stores/settings'
@@ -58,14 +58,16 @@ describe('UsersPage', () => {
     ).toBe(false)
 
     server.use(
-      http.get('http://hs.example.com/api/v1/node', () =>
-        HttpResponse.json({ message: 'failed' }, { status: 500 }),
-      ),
+      http.get('http://hs.example.com/api/v1/node', async () => {
+        await delay(200)
+        return HttpResponse.json({ message: 'failed' }, { status: 500 })
+      }),
     )
-    await queryClient.invalidateQueries({ queryKey: queryKeys.nodes() })
+    const refetch = queryClient.invalidateQueries({ queryKey: queryKeys.nodes() })
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: 'Delete user' })).toBeNull()
     })
+    await refetch
     expect((screen.getByRole('button', { name: 'Delete' }) as HTMLButtonElement).disabled).toBe(
       true,
     )

@@ -4,13 +4,13 @@ export interface VersionInfo {
 }
 
 export interface HealthInfo {
-  databaseConnectivity: boolean
+  databaseConnectivity: boolean | undefined
 }
 
 export interface SystemStatus {
   version: string
   commit?: string
-  databaseConnectivity: boolean
+  databaseConnectivity: boolean | undefined
   apiReachable: boolean
   checkedAt: Date
 }

@@ -23,7 +23,7 @@ export function createSystemRepository(http: HeadscaleHttp): SystemRepository {
         authenticated: true,
       })) as components['schemas']['v1HealthResponse'] | undefined
       return {
-        databaseConnectivity: Boolean(body?.databaseConnectivity),
+        databaseConnectivity: body?.databaseConnectivity,
       }
     },
     async validateConnection() {

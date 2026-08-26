@@ -47,7 +47,10 @@ const loading = computed(
     healthQuery.isLoading.value,
 )
 const healthUnavailable = computed(
-  () => healthQuery.isError.value || healthQuery.data.value === undefined,
+  () =>
+    healthQuery.isError.value ||
+    healthQuery.data.value === undefined ||
+    healthQuery.data.value.databaseConnectivity === undefined,
 )
 const hasError = computed(
   () =>

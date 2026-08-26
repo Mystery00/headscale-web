@@ -63,7 +63,7 @@ const filtered = computed(() => {
   })
 })
 const relatedNodeCount = computed(() =>
-  nodes.isSuccess.value
+  nodes.isSuccess.value && !nodes.isFetching.value
     ? (nodes.data.value?.filter((node) => node.user.id === selected.value?.id).length ?? 0)
     : null,
 )
@@ -283,7 +283,7 @@ async function onDelete() {
             <NButton
               type="error"
               secondary
-              :disabled="nodes.isError.value"
+              :disabled="relatedNodeCount === null"
               @click="confirmDelete = true"
               >{{ t('common.delete') }}</NButton
             >
