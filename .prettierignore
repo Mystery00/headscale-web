@@ -1,0 +1,5 @@
+docs
+pnpm-lock.yaml
+dist
+coverage
+src/api/generated
