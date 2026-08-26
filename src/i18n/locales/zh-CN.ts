@@ -9,6 +9,7 @@ export const zhCN = {
     routes: '路由',
     preAuthKeys: 'PreAuth Keys',
     menu: '菜单',
+    primary: '主导航',
     settings: '设置',
   },
   common: {
@@ -171,6 +172,7 @@ export const zhCN = {
   },
   shell: {
     disconnect: '断开连接',
+    consoleLabel: '管理控制台',
     version: '版本',
     databaseConnected: '数据库正常',
     databaseDisconnected: '数据库异常',

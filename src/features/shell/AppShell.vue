@@ -1,18 +1,33 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { LogOut, Menu } from '@lucide/vue'
 import { NButton, NDrawer, NLayout, NLayoutContent, NLayoutHeader, NLayoutSider } from 'naive-ui'
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import AppNav from '@/features/shell/AppNav.vue'
 import StatusBar from '@/features/shell/StatusBar.vue'
 import { credentialStore } from '@/stores/credentials'
 import { useSettingsStore } from '@/stores/settings'
 
 const { t } = useI18n()
+const route = useRoute()
 const router = useRouter()
 const settings = useSettingsStore()
-const title = computed(() => t('app.title'))
 const menuOpen = ref(false)
+
+const isDark = computed(
+  () =>
+    settings.theme === 'dark' ||
+    (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches),
+)
+const themeClass = computed(() => (isDark.value ? 'admin-theme-dark' : 'admin-theme-light'))
+
+watch(
+  () => route.fullPath,
+  () => {
+    menuOpen.value = false
+  },
+)
 
 function disconnect() {
   credentialStore.clear()
@@ -22,50 +37,137 @@ function disconnect() {
 </script>
 
 <template>
-  <NLayout has-sider>
-    <NLayoutSider
-      bordered
-      show-trigger="bar"
-      collapse-mode="width"
-      :collapsed-width="0"
-      :width="220"
-    >
-      <AppNav />
-    </NLayoutSider>
-    <NLayout>
-      <NLayoutHeader bordered style="padding: 0.75rem 1rem">
-        <div class="header">
-          <NButton class="menu-button" size="small" @click="menuOpen = true">{{
-            t('nav.menu')
-          }}</NButton>
-          <strong>{{ title }}</strong>
-          <StatusBar />
-          <NButton @click="disconnect">{{ t('shell.disconnect') }}</NButton>
-        </div>
-      </NLayoutHeader>
-      <NLayoutContent style="padding: 1rem">
-        <router-view />
-      </NLayoutContent>
+  <div class="app-shell" :class="themeClass">
+    <NLayout has-sider class="app-shell__layout" position="absolute">
+      <NLayoutSider
+        class="app-shell__sider"
+        bordered
+        collapse-mode="width"
+        :collapsed-width="0"
+        :width="232"
+        :native-scrollbar="false"
+        content-style="padding: 0;"
+      >
+        <AppNav />
+      </NLayoutSider>
+      <NLayout class="app-shell__main-layout">
+        <NLayoutHeader bordered class="app-shell__header">
+          <div class="app-shell__header-row">
+            <NButton
+              class="menu-button"
+              size="small"
+              quaternary
+              :aria-label="t('nav.menu')"
+              @click="menuOpen = true"
+            >
+              <template #icon>
+                <Menu :size="18" aria-hidden="true" />
+              </template>
+              <span class="menu-button__label">{{ t('nav.menu') }}</span>
+            </NButton>
+            <StatusBar />
+            <NButton class="disconnect-button" type="error" secondary @click="disconnect">
+              <template #icon>
+                <LogOut :size="16" aria-hidden="true" />
+              </template>
+              {{ t('shell.disconnect') }}
+            </NButton>
+          </div>
+        </NLayoutHeader>
+        <NLayoutContent class="app-shell__content" content-style="padding: 0;">
+          <main class="admin-content app-shell__page">
+            <router-view />
+          </main>
+        </NLayoutContent>
+      </NLayout>
     </NLayout>
-    <NDrawer v-model:show="menuOpen" placement="left" :width="240">
+
+    <NDrawer v-model:show="menuOpen" class="app-shell__drawer" placement="left" :width="260">
       <AppNav />
     </NDrawer>
-  </NLayout>
+  </div>
 </template>
 
 <style scoped>
-.header {
+.app-shell {
+  position: relative;
+  min-height: 100vh;
+  color: var(--admin-text);
+  background: var(--admin-bg);
+}
+
+.app-shell__layout {
+  min-height: 100vh;
+  background: var(--admin-bg);
+}
+
+.app-shell__sider {
+  background: var(--admin-sidebar) !important;
+}
+
+.app-shell__sider :deep(.n-layout-sider-scroll-container) {
+  background: var(--admin-sidebar);
+}
+
+.app-shell__main-layout {
+  min-width: 0;
+  background: var(--admin-bg);
+}
+
+.app-shell__header {
+  padding: 0.85rem 1rem;
+  background: color-mix(in srgb, var(--admin-surface) 92%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.app-shell__header-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
 }
+
+.app-shell__content {
+  background: var(--admin-bg);
+}
+
+.app-shell__page {
+  box-sizing: border-box;
+  min-height: calc(100vh - 4.5rem);
+  padding: 1.25rem 1rem 2rem;
+}
+
 .menu-button {
   display: none;
 }
-@media (max-width: 800px) {
+
+.disconnect-button {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.app-shell__drawer :deep(.n-drawer-body-content-wrapper) {
+  padding: 0;
+  background: var(--admin-sidebar);
+}
+
+@media (max-width: 860px) {
+  .app-shell__sider {
+    display: none !important;
+  }
+
   .menu-button {
     display: inline-flex;
+  }
+
+  .disconnect-button {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .menu-button__label {
+    display: none;
   }
 }
 </style>

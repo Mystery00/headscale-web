@@ -9,6 +9,7 @@ export const enUS = {
     routes: 'Routes',
     preAuthKeys: 'PreAuth Keys',
     menu: 'Menu',
+    primary: 'Primary navigation',
     settings: 'Settings',
   },
   connection: {
@@ -61,6 +62,7 @@ export const enUS = {
   },
   shell: {
     disconnect: 'Disconnect',
+    consoleLabel: 'Admin console',
     version: 'Version',
     databaseConnected: 'Database connected',
     databaseDisconnected: 'Database disconnected',
