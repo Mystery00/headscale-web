@@ -63,6 +63,11 @@ describe('ConnectionPage', () => {
     expect(screen.getByLabelText('API Key')).toBeTruthy()
   })
 
+  it('presents the connection checks as a labelled status region', async () => {
+    await renderPage()
+    expect(screen.getByRole('region', { name: 'Connection checks' })).toBeTruthy()
+  })
+
   it('stores the key in sessionStorage by default and navigates home', async () => {
     const { router } = await renderPage()
     await fireEvent.update(screen.getByLabelText('Headscale URL'), BASE_URL)
@@ -96,6 +101,19 @@ describe('ConnectionPage', () => {
       expect(localStorage.getItem(STORAGE_KEYS.apiKeyLocal)).toBe('test-key')
     })
     expect(sessionStorage.getItem(STORAGE_KEYS.apiKeySession)).toBeNull()
+  })
+
+  it('returns to session storage when long-term risk consent is withdrawn', async () => {
+    await renderPage()
+    const consent = screen.getByLabelText('I understand the risk of long-term storage')
+    await fireEvent.click(consent)
+    await fireEvent.click(screen.getByLabelText('Remember on this device'))
+    await fireEvent.click(consent)
+
+    expect((screen.getByLabelText('This session') as HTMLInputElement).checked).toBe(true)
+    expect((screen.getByLabelText('Remember on this device') as HTMLInputElement).checked).toBe(
+      false,
+    )
   })
 
   it('shows an unsupported-version message and does not store the key', async () => {

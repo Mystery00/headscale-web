@@ -13,22 +13,38 @@ export const enUS = {
   },
   connection: {
     title: 'Connect to Headscale',
+    description: 'Manage users, nodes, routes, and access keys from one secure workspace.',
+    securityTitle: 'Your key stays in this browser',
+    securityDescription: 'Credentials are sent directly to your Headscale instance.',
     urlLabel: 'Headscale URL',
+    urlPlaceholder: 'https://headscale.example.com',
     apiKeyLabel: 'API Key',
+    apiKeyPlaceholder: 'Enter your API key',
     showApiKey: 'Show API key',
     hideApiKey: 'Hide API key',
+    persistenceTitle: 'Credential storage',
     persistenceSession: 'This session',
+    persistenceSessionHint: 'Cleared when the browser closes',
     persistenceLocal: 'Remember on this device',
+    persistenceLocalHint: 'Available after you return',
     localRisk:
       'The API key will be stored in localStorage and can be read by other scripts on this origin.',
     localRiskConfirm: 'I understand the risk of long-term storage',
     connect: 'Connect',
     connecting: 'Connecting',
+    checksTitle: 'Connection checks',
+    checksHint: 'Validated when you connect',
     steps: {
       network: 'Network',
       version: 'Version',
       database: 'Database',
       authorization: 'Authorization',
+    },
+    states: {
+      idle: 'Waiting',
+      running: 'Checking',
+      ok: 'Ready',
+      fail: 'Failed',
     },
     errors: {
       empty: 'Enter a Headscale URL.',
@@ -166,4 +182,3 @@ export const enUS = {
     test: 'Test connection',
   },
 }
-
