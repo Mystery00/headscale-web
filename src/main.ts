@@ -1,8 +1,9 @@
-import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query'
+import { VueQueryPlugin } from '@tanstack/vue-query'
 import { createPinia, setActivePinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
 import { createAppI18n } from './i18n'
+import { createAppQueryClient } from './query/client'
 import { createAppRouter } from './router'
 import { credentialStore } from './stores/credentials'
 import { useSettingsStore } from './stores/settings'
@@ -17,6 +18,6 @@ app.use(pinia)
 app.use(createAppI18n(settings.locale))
 app.use(createAppRouter())
 app.use(VueQueryPlugin, {
-  queryClient: new QueryClient(),
+  queryClient: createAppQueryClient(),
 })
 app.mount('#app')
