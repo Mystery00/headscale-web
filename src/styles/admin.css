@@ -1,0 +1,63 @@
+:root {
+  --admin-bg: #f2f6f8;
+  --admin-surface: #ffffff;
+  --admin-surface-muted: #f7fafb;
+  --admin-border: #dfe8eb;
+  --admin-text: #102235;
+  --admin-muted: #66788a;
+  --admin-primary: #0f9f78;
+  --admin-primary-soft: rgba(15, 159, 120, 0.12);
+  --admin-sidebar: #09251f;
+  --admin-danger: #d03050;
+  --admin-warning: #f0a020;
+  --admin-info: #2080f0;
+  --admin-success: #18a058;
+  --admin-radius: 12px;
+  --admin-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.admin-theme-dark {
+  --admin-bg: #08111d;
+  --admin-surface: #0f1b2a;
+  --admin-surface-muted: #132235;
+  --admin-border: #25364b;
+  --admin-text: #edf5f7;
+  --admin-muted: #94a3b8;
+  --admin-primary: #35d0a3;
+  --admin-primary-soft: rgba(53, 208, 163, 0.12);
+  --admin-sidebar: #071712;
+  --admin-danger: #e88080;
+  --admin-warning: #f2c97d;
+  --admin-info: #70b0ff;
+  --admin-success: #63e2b7;
+  --admin-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+.admin-content {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+}
+
+.admin-page {
+  display: grid;
+  gap: 1.25rem;
+  color: var(--admin-text);
+}
+
+.admin-card {
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-section-title {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.admin-muted {
+  color: var(--admin-muted);
+}

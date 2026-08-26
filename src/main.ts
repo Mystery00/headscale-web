@@ -8,6 +8,7 @@ import { createAppRouter } from './router'
 import { credentialStore } from './stores/credentials'
 import { useSettingsStore } from './stores/settings'
 import './styles/reset.css'
+import './styles/admin.css'
 
 const pinia = createPinia()
 setActivePinia(pinia)
