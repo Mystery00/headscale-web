@@ -42,7 +42,7 @@ test('creates a user', async ({ page }) => {
   await page.getByRole('button', { name: 'Connect' }).click()
   await page.getByRole('link', { name: 'Users' }).click()
   await page.getByRole('button', { name: 'Create' }).click()
-  await page.getByPlaceholder('Name').fill('bob')
+  await page.getByLabel('Name').fill('bob')
   await page.getByRole('button', { name: 'Save' }).click()
   await expect(page.getByText('bob')).toBeVisible()
 })

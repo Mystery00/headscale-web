@@ -35,8 +35,10 @@
   .page-toolbar,
   .page-toolbar__filters,
   .page-toolbar__actions {
+    flex: 0 1 auto;
     flex-direction: column;
     align-items: stretch;
+    width: 100%;
   }
 }
 </style>
