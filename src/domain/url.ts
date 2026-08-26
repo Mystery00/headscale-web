@@ -6,12 +6,10 @@ export function normalizeBasePath(value: string): string {
 }
 
 export type HeadscaleUrlError =
-  | 'empty'
-  | 'invalid'
-  | 'unsupported-protocol'
-  | 'credentials-not-allowed'
+  'empty' | 'invalid' | 'unsupported-protocol' | 'credentials-not-allowed'
 
-export type HeadscaleUrlResult = { ok: true; url: string } | { ok: false; reason: HeadscaleUrlError }
+export type HeadscaleUrlResult =
+  { ok: true; url: string } | { ok: false; reason: HeadscaleUrlError }
 
 export function normalizeHeadscaleUrl(input: string): HeadscaleUrlResult {
   const trimmed = input.trim()
