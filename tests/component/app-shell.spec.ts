@@ -134,7 +134,7 @@ describe('AppShell', () => {
     })
   })
 
-  it('clears cached query data when disconnecting', async () => {
+  it('confirms before clearing cached query data when disconnecting', async () => {
     const { queryClient, router } = await renderShell('/')
     queryClient.setQueryData(queryKeys.users(), [
       {
@@ -151,6 +151,13 @@ describe('AppShell', () => {
     expect(queryClient.getQueryData(queryKeys.users())).toBeTruthy()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }))
+    expect(screen.getByRole('dialog', { name: 'Disconnect' })).toBeTruthy()
+    expect(router.currentRoute.value.path).toBe('/')
+    expect(queryClient.getQueryData(queryKeys.users())).toBeTruthy()
+    expect(credentialStore.getApiKey()).toBe('test-key')
+
+    const disconnectButtons = screen.getAllByRole('button', { name: 'Disconnect' })
+    await fireEvent.click(disconnectButtons[disconnectButtons.length - 1]!)
     await waitFor(() => {
       expect(router.currentRoute.value.path).toBe('/connect')
     })

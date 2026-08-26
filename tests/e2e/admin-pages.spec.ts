@@ -13,6 +13,26 @@ async function resetMock() {
         { id: '1', name: 'alice', createdAt: '2024-01-02T03:04:05Z' },
         { id: '2', name: 'platform', createdAt: '2024-02-03T04:05:06Z' },
       ],
+      nodes: [
+        {
+          id: '42',
+          name: 'laptop',
+          givenName: 'alice-laptop',
+          machineKey: 'mkey-test-fixture',
+          nodeKey: 'nkey-test-fixture',
+          discoKey: 'dkey-test-fixture',
+          ipAddresses: ['100.64.0.2'],
+          user: { id: '1', name: 'alice', createdAt: '2024-01-02T03:04:05Z' },
+          lastSeen: '2024-02-01T00:00:00Z',
+          createdAt: '2024-01-02T03:04:05Z',
+          registerMethod: 'REGISTER_METHOD_AUTH_KEY',
+          online: true,
+          tags: ['tag:lab'],
+          approvedRoutes: ['10.0.0.0/8'],
+          availableRoutes: ['10.0.0.0/8'],
+          subnetRoutes: ['10.0.0.0/8'],
+        },
+      ],
     }),
   })
 }
@@ -69,5 +89,20 @@ test('keeps every authenticated page contained at mobile width', async ({ page }
     }))
     expect(layout.overflow).toBeLessThanOrEqual(1)
     expect(layout.toolbarHeight).toBeLessThan(180)
+
+    if (target.path === '/users' || target.path === '/nodes') {
+      await page.getByRole('button', { name: 'Details' }).first().click()
+      const drawer = page.locator('.n-drawer-content-wrapper:visible').last()
+      await expect
+        .poll(async () => {
+          const bounds = await drawer.boundingBox()
+          return bounds ? Math.round(bounds.x + bounds.width) : Number.POSITIVE_INFINITY
+        })
+        .toBeLessThanOrEqual(390)
+      const drawerBounds = await drawer.boundingBox()
+      expect(drawerBounds).not.toBeNull()
+      expect(drawerBounds!.x).toBeGreaterThanOrEqual(0)
+      expect(drawerBounds!.width).toBeLessThanOrEqual(390)
+    }
   }
 })

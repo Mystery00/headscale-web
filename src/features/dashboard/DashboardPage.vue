@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { NButton } from 'naive-ui'
 import {
   Activity,
   Database,
@@ -38,8 +39,31 @@ const nodes = computed(() => nodesQuery.data.value ?? [])
 const keys = computed(() => keysQuery.data.value ?? [])
 const routes = computed(() => mapRoutesFromNodes(nodes.value))
 const loading = computed(
-  () => usersQuery.isLoading.value || nodesQuery.isLoading.value || keysQuery.isLoading.value,
+  () =>
+    usersQuery.isLoading.value ||
+    nodesQuery.isLoading.value ||
+    keysQuery.isLoading.value ||
+    versionQuery.isLoading.value ||
+    healthQuery.isLoading.value,
 )
+const hasError = computed(
+  () =>
+    usersQuery.isError.value ||
+    nodesQuery.isError.value ||
+    keysQuery.isError.value ||
+    versionQuery.isError.value ||
+    healthQuery.isError.value,
+)
+
+function retry() {
+  void Promise.all([
+    usersQuery.refetch(),
+    nodesQuery.refetch(),
+    keysQuery.refetch(),
+    versionQuery.refetch(),
+    healthQuery.refetch(),
+  ])
+}
 const offlineNodes = computed(() => nodes.value.filter((node) => !node.online))
 const expiringNodes = computed(() =>
   nodes.value.filter(
@@ -125,108 +149,116 @@ const cards = computed(() => [
   <section class="admin-page dashboard-page">
     <PageHeader :title="t('dashboard.title')" :description="t('dashboard.description')" />
 
-    <div class="stats-grid" aria-label="Dashboard metrics">
-      <StatCard
-        v-for="card in cards"
-        :key="card.label"
-        :label="card.label"
-        :value="card.value"
-        :tone="card.tone"
-        :loading="loading"
+    <EmptyState v-if="hasError" :title="t('common.error')">
+      <template #action
+        ><NButton secondary @click="retry">{{ t('common.retry') }}</NButton></template
       >
-        <component :is="card.icon" :size="18" />
-      </StatCard>
-    </div>
+    </EmptyState>
 
-    <div class="dashboard-grid">
-      <section
-        class="admin-card dashboard-panel"
-        role="region"
-        :aria-label="t('dashboard.networkOverview')"
-      >
-        <header class="panel-heading">
-          <div>
-            <h2>{{ t('dashboard.networkOverview') }}</h2>
-            <p>{{ t('dashboard.networkOverviewHint') }}</p>
+    <template v-else>
+      <div class="stats-grid" aria-label="Dashboard metrics">
+        <StatCard
+          v-for="card in cards"
+          :key="card.label"
+          :label="card.label"
+          :value="card.value"
+          :tone="card.tone"
+          :loading="loading"
+        >
+          <component :is="card.icon" :size="18" />
+        </StatCard>
+      </div>
+
+      <div class="dashboard-grid">
+        <section
+          class="admin-card dashboard-panel"
+          role="region"
+          :aria-label="t('dashboard.networkOverview')"
+        >
+          <header class="panel-heading">
+            <div>
+              <h2>{{ t('dashboard.networkOverview') }}</h2>
+              <p>{{ t('dashboard.networkOverviewHint') }}</p>
+            </div>
+            <StatusBadge
+              :label="
+                healthQuery.data.value?.databaseConnectivity
+                  ? t('shell.databaseConnected')
+                  : t('shell.databaseDisconnected')
+              "
+              :tone="healthQuery.data.value?.databaseConnectivity ? 'success' : 'danger'"
+            />
+          </header>
+          <dl class="network-list">
+            <div>
+              <dt>{{ t('shell.version') }}</dt>
+              <dd>{{ versionQuery.data.value?.version ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt>{{ t('dashboard.advertisedRoutes') }}</dt>
+              <dd>{{ routes.filter((route) => route.advertised).length }}</dd>
+            </div>
+            <div>
+              <dt>{{ t('dashboard.approvedRoutes') }}</dt>
+              <dd>{{ routes.filter((route) => route.approved).length }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section
+          class="admin-card dashboard-panel"
+          role="region"
+          :aria-label="t('dashboard.needsAttention')"
+        >
+          <header class="panel-heading">
+            <div>
+              <h2>{{ t('dashboard.needsAttention') }}</h2>
+              <p>{{ t('dashboard.needsAttentionHint') }}</p>
+            </div>
+            <StatusBadge
+              :label="hasAttention ? t('dashboard.attentionRequired') : t('dashboard.allClear')"
+              :tone="hasAttention ? 'warning' : 'success'"
+            />
+          </header>
+
+          <div v-if="hasAttention" class="attention-list">
+            <div v-for="node in offlineNodes" :key="`offline-${node.id}`" class="attention-item">
+              <WifiOff :size="18" aria-hidden="true" />
+              <div>
+                <strong>{{ node.givenName || node.name }}</strong
+                ><span>{{ t('dashboard.offlineList') }}</span>
+              </div>
+            </div>
+            <div v-for="node in expiringNodes" :key="`expiry-${node.id}`" class="attention-item">
+              <Activity :size="18" aria-hidden="true" />
+              <div>
+                <strong>{{ node.givenName || node.name }}</strong
+                ><span>{{ t('dashboard.expiringNodes') }}</span>
+              </div>
+            </div>
+            <div v-for="key in expiringKeys" :key="`key-${key.id}`" class="attention-item">
+              <KeyRound :size="18" aria-hidden="true" />
+              <div>
+                <strong>{{ key.keyPreview ?? key.id }}</strong
+                ><span>{{ t('dashboard.expiringKeyList') }}</span>
+              </div>
+            </div>
+            <div v-for="route in pendingRoutes" :key="route.id" class="attention-item">
+              <Route :size="18" aria-hidden="true" />
+              <div>
+                <strong>{{ route.prefix }}</strong
+                ><span>{{ route.nodeName }} · {{ t('dashboard.unapprovedRoutes') }}</span>
+              </div>
+            </div>
           </div>
-          <StatusBadge
-            :label="
-              healthQuery.data.value?.databaseConnectivity
-                ? t('shell.databaseConnected')
-                : t('shell.databaseDisconnected')
-            "
-            :tone="healthQuery.data.value?.databaseConnectivity ? 'success' : 'danger'"
+          <EmptyState
+            v-else
+            :title="t('dashboard.allClear')"
+            :description="t('dashboard.allClearHint')"
           />
-        </header>
-        <dl class="network-list">
-          <div>
-            <dt>{{ t('shell.version') }}</dt>
-            <dd>{{ versionQuery.data.value?.version ?? '—' }}</dd>
-          </div>
-          <div>
-            <dt>{{ t('dashboard.advertisedRoutes') }}</dt>
-            <dd>{{ routes.filter((route) => route.advertised).length }}</dd>
-          </div>
-          <div>
-            <dt>{{ t('dashboard.approvedRoutes') }}</dt>
-            <dd>{{ routes.filter((route) => route.approved).length }}</dd>
-          </div>
-        </dl>
-      </section>
-
-      <section
-        class="admin-card dashboard-panel"
-        role="region"
-        :aria-label="t('dashboard.needsAttention')"
-      >
-        <header class="panel-heading">
-          <div>
-            <h2>{{ t('dashboard.needsAttention') }}</h2>
-            <p>{{ t('dashboard.needsAttentionHint') }}</p>
-          </div>
-          <StatusBadge
-            :label="hasAttention ? t('dashboard.attentionRequired') : t('dashboard.allClear')"
-            :tone="hasAttention ? 'warning' : 'success'"
-          />
-        </header>
-
-        <div v-if="hasAttention" class="attention-list">
-          <div v-for="node in offlineNodes" :key="`offline-${node.id}`" class="attention-item">
-            <WifiOff :size="18" aria-hidden="true" />
-            <div>
-              <strong>{{ node.givenName || node.name }}</strong
-              ><span>{{ t('dashboard.offlineList') }}</span>
-            </div>
-          </div>
-          <div v-for="node in expiringNodes" :key="`expiry-${node.id}`" class="attention-item">
-            <Activity :size="18" aria-hidden="true" />
-            <div>
-              <strong>{{ node.givenName || node.name }}</strong
-              ><span>{{ t('dashboard.expiringNodes') }}</span>
-            </div>
-          </div>
-          <div v-for="key in expiringKeys" :key="`key-${key.id}`" class="attention-item">
-            <KeyRound :size="18" aria-hidden="true" />
-            <div>
-              <strong>{{ key.keyPreview ?? key.id }}</strong
-              ><span>{{ t('dashboard.expiringKeyList') }}</span>
-            </div>
-          </div>
-          <div v-for="route in pendingRoutes" :key="route.id" class="attention-item">
-            <Route :size="18" aria-hidden="true" />
-            <div>
-              <strong>{{ route.prefix }}</strong
-              ><span>{{ route.nodeName }} · {{ t('dashboard.unapprovedRoutes') }}</span>
-            </div>
-          </div>
-        </div>
-        <EmptyState
-          v-else
-          :title="t('dashboard.allClear')"
-          :description="t('dashboard.allClearHint')"
-        />
-      </section>
-    </div>
+        </section>
+      </div>
+    </template>
   </section>
 </template>
 

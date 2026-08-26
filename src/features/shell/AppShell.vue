@@ -5,6 +5,7 @@ import { NButton, NDrawer, NLayout, NLayoutContent, NLayoutHeader, NLayoutSider 
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import AppNav from '@/features/shell/AppNav.vue'
 import StatusBar from '@/features/shell/StatusBar.vue'
 import { credentialStore } from '@/stores/credentials'
@@ -16,6 +17,7 @@ const router = useRouter()
 const settings = useSettingsStore()
 const queryClient = useQueryClient()
 const menuOpen = ref(false)
+const confirmDisconnect = ref(false)
 
 const isDark = computed(
   () =>
@@ -73,7 +75,12 @@ function disconnect() {
               <span class="menu-button__label">{{ t('nav.menu') }}</span>
             </NButton>
             <StatusBar />
-            <NButton class="disconnect-button" type="error" secondary @click="disconnect">
+            <NButton
+              class="disconnect-button"
+              type="error"
+              secondary
+              @click="confirmDisconnect = true"
+            >
               <template #icon>
                 <LogOut :size="16" aria-hidden="true" />
               </template>
@@ -88,6 +95,15 @@ function disconnect() {
         </NLayoutContent>
       </NLayout>
     </NLayout>
+
+    <ConfirmDialog
+      v-model:show="confirmDisconnect"
+      :title="t('shell.disconnect')"
+      :message="t('settings.disconnectMessage')"
+      :confirm-label="t('shell.disconnect')"
+      danger
+      @confirm="disconnect"
+    />
 
     <NDrawer
       v-model:show="menuOpen"

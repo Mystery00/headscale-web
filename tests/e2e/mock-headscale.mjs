@@ -5,6 +5,7 @@ const state = {
   version: '0.29.3',
   failAuth: false,
   users: [{ id: '1', name: 'alice', createdAt: '2024-01-02T03:04:05Z' }],
+  nodes: [],
 }
 
 function json(res, status, body) {
@@ -65,7 +66,7 @@ const server = createServer(async (req, res) => {
     return
   }
   if (req.method === 'GET' && url.pathname === '/api/v1/node') {
-    json(res, 200, { nodes: [] })
+    json(res, 200, { nodes: state.nodes })
     return
   }
   if (req.method === 'GET' && url.pathname === '/api/v1/preauthkey') {

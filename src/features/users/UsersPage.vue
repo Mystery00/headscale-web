@@ -20,17 +20,20 @@ import AppDataTable from '@/components/ui/AppDataTable.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
+import { formatDateTime } from '@/domain/datetime'
 import type { User } from '@/domain/user'
 import { useNodesQuery, useUsersQuery } from '@/query/use-headscale-queries'
+import { useSettingsStore } from '@/stores/settings'
 import {
   useCreateUserMutation,
   useDeleteUserMutation,
   useRenameUserMutation,
 } from '@/query/use-headscale-mutations'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const message = useMessage()
 const notification = useNotification()
+const settings = useSettingsStore()
 const query = useUsersQuery()
 const nodes = useNodesQuery()
 const createUser = useCreateUserMutation()
@@ -64,7 +67,7 @@ const relatedNodeCount = computed(
 )
 
 function formatDate(date: Date) {
-  return new Intl.DateTimeFormat(locale.value, { dateStyle: 'medium' }).format(date)
+  return formatDateTime(date, { locale: settings.locale, style: settings.dateTimeStyle })
 }
 
 function openDetails(user: User) {
@@ -184,7 +187,11 @@ async function onDelete() {
       :scroll-x="820"
     >
       <template #empty>
-        <EmptyState :title="query.isError.value ? t('common.error') : t('common.empty')" />
+        <EmptyState :title="query.isError.value ? t('common.error') : t('common.empty')">
+          <template v-if="query.isError.value" #action>
+            <NButton secondary @click="query.refetch()">{{ t('common.retry') }}</NButton>
+          </template>
+        </EmptyState>
       </template>
     </AppDataTable>
 
@@ -215,7 +222,7 @@ async function onDelete() {
 
     <NDrawer
       :show="Boolean(selected)"
-      :width="420"
+      width="min(420px, calc(100vw - 16px))"
       @update:show="(value: boolean) => !value && (selected = null)"
     >
       <NDrawerContent v-if="selected" :title="selected.displayName || selected.name" closable>

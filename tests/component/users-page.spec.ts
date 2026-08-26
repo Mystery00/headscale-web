@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { fireEvent, screen, waitFor } from '@testing-library/vue'
 import UsersPage from '@/features/users/UsersPage.vue'
+import { useSettingsStore } from '@/stores/settings'
 import { server } from '../msw/server'
 import { renderConnected } from './render-connected'
 
@@ -16,6 +17,12 @@ describe('UsersPage', () => {
     })
     expect(screen.getByRole('table', { name: 'Users' })).toBeTruthy()
     expect(screen.getByText('alice@example.com')).toBeTruthy()
+  })
+
+  it('uses the configured relative date style', async () => {
+    await renderConnected('/users', UsersPage)
+    useSettingsStore().update({ dateTimeStyle: 'relative' })
+    expect(await screen.findByText(/ago$/)).toBeTruthy()
   })
 
   it('requires the exact user name before deletion', async () => {

@@ -89,8 +89,7 @@ async function testConnection() {
       baseUrl: parsed.value.baseUrl,
       credentialPersistence: parsed.value.persistence,
     })
-    if (apiKey.value.trim())
-      credentialStore.setApiKey(parsed.value.apiKey, parsed.value.persistence)
+    credentialStore.setApiKey(parsed.value.apiKey, parsed.value.persistence)
     apiKey.value = ''
     message.success(t('settings.connectionVerified'))
   } catch {
@@ -101,16 +100,24 @@ async function testConnection() {
 }
 
 function saveClientSettings() {
+  const parsed = parseConnectionForm({
+    baseUrl: baseUrl.value,
+    apiKey: apiKey.value || credentialStore.getApiKey() || '',
+    persistence: persistence.value,
+  })
+  if (!parsed.ok) {
+    notification.error({ title: t('common.failed') })
+    return
+  }
   settings.update({
-    credentialPersistence: persistence.value,
+    baseUrl: parsed.value.baseUrl,
+    credentialPersistence: parsed.value.persistence,
     locale: settings.locale,
     theme: settings.theme,
     dateTimeStyle: settings.dateTimeStyle,
   })
-  if (apiKey.value.trim()) {
-    credentialStore.setApiKey(apiKey.value.trim(), persistence.value)
-    apiKey.value = ''
-  }
+  credentialStore.setApiKey(parsed.value.apiKey, parsed.value.persistence)
+  apiKey.value = ''
   locale.value = settings.locale
   message.success(t('common.success'))
 }

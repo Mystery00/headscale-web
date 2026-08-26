@@ -141,7 +141,12 @@ function confirmRevoke() {
     >
       <template #empty>
         <EmptyState :title="query.isError.value ? t('common.error') : t('common.empty')">
-          <template #action><RouteIcon :size="20" aria-hidden="true" /></template>
+          <template #action>
+            <NButton v-if="query.isError.value" secondary @click="query.refetch()">{{
+              t('common.retry')
+            }}</NButton>
+            <RouteIcon v-else :size="20" aria-hidden="true" />
+          </template>
         </EmptyState>
       </template>
     </AppDataTable>

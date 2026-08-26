@@ -16,6 +16,7 @@ export const zhCN = {
     loading: '加载中',
     empty: '暂无数据',
     error: '无法加载数据',
+    retry: '重试',
     search: '搜索',
     filter: '筛选',
     online: '在线',

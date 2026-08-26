@@ -21,9 +21,11 @@ import StatusBadge from '@/components/ui/StatusBadge.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import { useMaskedKey } from '@/composables/use-masked-key'
+import { formatDateTime } from '@/domain/datetime'
 import type { Node } from '@/domain/node'
 import { normalizeTags } from '@/domain/tags'
 import { useNodesQuery } from '@/query/use-headscale-queries'
+import { useSettingsStore } from '@/stores/settings'
 import {
   useDeleteNodeMutation,
   useExpireNodeNowMutation,
@@ -31,10 +33,11 @@ import {
   useSetNodeTagsMutation,
 } from '@/query/use-headscale-mutations'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const { mask } = useMaskedKey()
 const message = useMessage()
 const notification = useNotification()
+const settings = useSettingsStore()
 const query = useNodesQuery()
 const renameNode = useRenameNodeMutation()
 const setTags = useSetNodeTagsMutation()
@@ -67,10 +70,7 @@ const filtered = computed(() => {
 })
 
 function formatDate(date: Date | null) {
-  if (!date) return '—'
-  return new Intl.DateTimeFormat(locale.value, { dateStyle: 'medium', timeStyle: 'short' }).format(
-    date,
-  )
+  return formatDateTime(date, { locale: settings.locale, style: settings.dateTimeStyle })
 }
 
 function open(node: Node) {
@@ -245,14 +245,18 @@ function onDelete() {
       :aria-label="t('nodes.title')"
       :scroll-x="1350"
     >
-      <template #empty
-        ><EmptyState :title="query.isError.value ? t('common.error') : t('common.empty')"
-      /></template>
+      <template #empty>
+        <EmptyState :title="query.isError.value ? t('common.error') : t('common.empty')">
+          <template v-if="query.isError.value" #action>
+            <NButton secondary @click="query.refetch()">{{ t('common.retry') }}</NButton>
+          </template>
+        </EmptyState>
+      </template>
     </AppDataTable>
 
     <NDrawer
       :show="Boolean(selected)"
-      :width="460"
+      width="min(460px, calc(100vw - 16px))"
       @update:show="(value: boolean) => !value && (selected = null)"
     >
       <NDrawerContent v-if="selected" :title="selected.givenName || selected.name" closable>
