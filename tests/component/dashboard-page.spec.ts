@@ -16,4 +16,11 @@ describe('DashboardPage', () => {
     })
     expect(screen.getByText('Dashboard')).toBeTruthy()
   })
+
+  it('groups network health and attention items into labelled regions', async () => {
+    await renderConnected('/', DashboardPage)
+    expect(await screen.findByRole('region', { name: 'Network overview' })).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'Needs attention' })).toBeTruthy()
+    expect(await screen.findByText('0.0.0.0/0')).toBeTruthy()
+  })
 })
