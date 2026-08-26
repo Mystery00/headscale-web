@@ -25,6 +25,7 @@ export async function renderConnected(path: string, page?: Component) {
     : createAppRouter()
   await router.push(path)
   await router.isReady()
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const Root = defineComponent({
     setup() {
       return () =>
@@ -39,14 +40,10 @@ export async function renderConnected(path: string, page?: Component) {
         })
     },
   })
-  return render(Root, {
+  const view = render(Root, {
     global: {
-      plugins: [
-        pinia,
-        router,
-        i18n,
-        [VueQueryPlugin, { queryClient: new QueryClient({ defaultOptions: { queries: { retry: false } } }) }],
-      ],
+      plugins: [pinia, router, i18n, [VueQueryPlugin, { queryClient }]],
     },
   })
+  return Object.assign(view, { queryClient, router })
 }

@@ -160,6 +160,10 @@ const columns = computed<DataTableColumns<PreAuthKey>>(() => [
   },
 ])
 
+function retryRequiredQueries() {
+  void Promise.all([query.refetch(), users.refetch()])
+}
+
 async function onCreate() {
   try {
     const created = await createKey.mutateAsync({
@@ -208,7 +212,7 @@ async function confirmAction() {
   <section class="admin-page keys-page">
     <PageHeader :title="t('preAuthKeys.title')" :description="t('preAuthKeys.description')">
       <template #actions>
-        <NButton type="primary" @click="creating = true">
+        <NButton type="primary" :disabled="users.isError.value" @click="creating = true">
           <template #icon><Plus :size="17" aria-hidden="true" /></template>
           {{ t('common.create') }}
         </NButton>
@@ -222,6 +226,15 @@ async function confirmAction() {
         class="filter-select"
       />
     </PageToolbar>
+    <EmptyState
+      v-if="(query.isError.value && filtered.length > 0) || users.isError.value"
+      :title="t('common.error')"
+    >
+      <template #action>
+        <NButton secondary @click="retryRequiredQueries">{{ t('common.retry') }}</NButton>
+      </template>
+    </EmptyState>
+
     <AppDataTable
       :columns="columns"
       :data="filtered"

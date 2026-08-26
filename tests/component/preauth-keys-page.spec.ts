@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { fireEvent, screen, waitFor } from '@testing-library/vue'
+import { http, HttpResponse } from 'msw'
 import PreAuthKeysPage from '@/features/preauth-keys/PreAuthKeysPage.vue'
 import { server } from '../msw/server'
 import { renderConnected } from './render-connected'
@@ -16,6 +17,19 @@ describe('PreAuthKeysPage', () => {
     })
     expect(screen.getByRole('table', { name: 'PreAuth Keys' })).toBeTruthy()
     expect(screen.queryByText('hskey-abcdefghijklmnopqrstuvwxyz')).toBeNull()
+  })
+
+  it('disables creation and offers retry when users cannot be loaded', async () => {
+    server.use(
+      http.get('http://hs.example.com/api/v1/user', () =>
+        HttpResponse.json({ message: 'failed' }, { status: 500 }),
+      ),
+    )
+    await renderConnected('/preauth-keys', PreAuthKeysPage)
+    expect(await screen.findByRole('button', { name: 'Retry' })).toBeTruthy()
+    expect((screen.getByRole('button', { name: 'Create' }) as HTMLButtonElement).disabled).toBe(
+      true,
+    )
   })
 
   it('asks for confirmation before deleting a key', async () => {

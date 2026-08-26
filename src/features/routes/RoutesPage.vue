@@ -131,6 +131,12 @@ function confirmRevoke() {
         class="filter-select"
       />
     </PageToolbar>
+    <EmptyState v-if="query.isError.value && filtered.length > 0" :title="t('common.error')">
+      <template #action>
+        <NButton secondary @click="query.refetch()">{{ t('common.retry') }}</NButton>
+      </template>
+    </EmptyState>
+
     <AppDataTable
       :columns="columns"
       :data="filtered"

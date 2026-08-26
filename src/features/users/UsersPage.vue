@@ -62,9 +62,16 @@ const filtered = computed(() => {
     return matchesProvider && (!term || haystack.includes(term))
   })
 })
-const relatedNodeCount = computed(
-  () => nodes.data.value?.filter((node) => node.user.id === selected.value?.id).length ?? 0,
+const relatedNodeCount = computed(() =>
+  nodes.isError.value
+    ? null
+    : (nodes.data.value?.filter((node) => node.user.id === selected.value?.id).length ?? 0),
 )
+const relatedNodeCountLabel = computed(() => relatedNodeCount.value ?? t('common.unavailable'))
+
+function retryRequiredQueries() {
+  void Promise.all([query.refetch(), nodes.refetch()])
+}
 
 function formatDate(date: Date) {
   return formatDateTime(date, { locale: settings.locale, style: settings.dateTimeStyle })
@@ -178,6 +185,15 @@ async function onDelete() {
       />
     </PageToolbar>
 
+    <EmptyState
+      v-if="(query.isError.value && filtered.length > 0) || nodes.isError.value"
+      :title="t('common.error')"
+    >
+      <template #action>
+        <NButton secondary @click="retryRequiredQueries">{{ t('common.retry') }}</NButton>
+      </template>
+    </EmptyState>
+
     <AppDataTable
       :columns="columns"
       :data="filtered"
@@ -240,7 +256,7 @@ async function onDelete() {
               </div>
               <div>
                 <dt>{{ t('users.relatedNodes') }}</dt>
-                <dd>{{ relatedNodeCount }}</dd>
+                <dd>{{ relatedNodeCountLabel }}</dd>
               </div>
             </dl>
           </section>
@@ -259,10 +275,14 @@ async function onDelete() {
           </section>
           <section class="drawer-section danger-zone">
             <h2>{{ t('users.dangerZone') }}</h2>
-            <p>{{ t('users.deleteHint', { count: relatedNodeCount }) }}</p>
-            <NButton type="error" secondary @click="confirmDelete = true">{{
-              t('common.delete')
-            }}</NButton>
+            <p>{{ t('users.deleteHint', { count: relatedNodeCountLabel }) }}</p>
+            <NButton
+              type="error"
+              secondary
+              :disabled="nodes.isError.value"
+              @click="confirmDelete = true"
+              >{{ t('common.delete') }}</NButton
+            >
           </section>
         </div>
       </NDrawerContent>
@@ -272,7 +292,7 @@ async function onDelete() {
       v-if="selected"
       v-model:show="confirmDelete"
       :title="t('users.deleteTitle')"
-      :message="t('users.deleteMessage', { name: selected.name, count: relatedNodeCount })"
+      :message="t('users.deleteMessage', { name: selected.name, count: relatedNodeCountLabel })"
       :confirm-label="t('users.confirmDelete')"
       :confirm-text="t('users.confirmName')"
       :expected-text="selected.name"

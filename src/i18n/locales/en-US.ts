@@ -77,6 +77,7 @@ export const enUS = {
     loading: 'Loading',
     empty: 'No data',
     error: 'Could not load data',
+    unavailable: 'Unavailable',
     retry: 'Retry',
     search: 'Search',
     filter: 'Filter',

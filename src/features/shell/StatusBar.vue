@@ -29,8 +29,12 @@ const themeOptions = computed(() => [
 
 const versionLabel = computed(() => versionQuery.data.value?.version ?? '—')
 const databaseConnected = computed(() => Boolean(healthQuery.data.value?.databaseConnectivity))
-const databaseLabel = computed(() =>
-  databaseConnected.value ? t('shell.databaseConnected') : t('shell.databaseDisconnected'),
+const databaseLabel = computed(() => {
+  if (healthQuery.isError.value) return t('common.unavailable')
+  return databaseConnected.value ? t('shell.databaseConnected') : t('shell.databaseDisconnected')
+})
+const databaseTone = computed(() =>
+  healthQuery.isError.value ? 'neutral' : databaseConnected.value ? 'success' : 'danger',
 )
 const instanceLabel = computed(() => settings.baseUrl ?? '—')
 
@@ -52,7 +56,7 @@ function onTheme(value: ThemePreference) {
       tone="info"
       :aria-label="`${t('shell.version')}: ${versionLabel}`"
     />
-    <StatusBadge :label="databaseLabel" :tone="databaseConnected ? 'success' : 'danger'" />
+    <StatusBadge :label="databaseLabel" :tone="databaseTone" />
     <NButton size="small" quaternary :aria-label="t('shell.refresh')" @click="refreshAll">
       <template #icon>
         <RefreshCw :size="16" aria-hidden="true" />

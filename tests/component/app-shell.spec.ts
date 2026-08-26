@@ -1,6 +1,7 @@
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { NConfigProvider, NDialogProvider, NMessageProvider, NNotificationProvider } from 'naive-ui'
+import { http, HttpResponse } from 'msw'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { defineComponent, h } from 'vue'
@@ -132,6 +133,17 @@ describe('AppShell', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: 'Primary navigation' })).toBeNull()
     })
+  })
+
+  it('reports an unavailable database status when the health read fails', async () => {
+    server.use(
+      http.get('http://hs.example.com/api/v1/health', () =>
+        HttpResponse.json({ message: 'failed' }, { status: 500 }),
+      ),
+    )
+    await renderShell('/')
+    expect(await screen.findByText('Unavailable')).toBeTruthy()
+    expect(screen.queryByText('Database disconnected')).toBeNull()
   })
 
   it('confirms before clearing cached query data when disconnecting', async () => {
