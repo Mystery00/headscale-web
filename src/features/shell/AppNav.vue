@@ -5,6 +5,10 @@ import { computed, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
 
+const emit = defineEmits<{
+  select: [key: string]
+}>()
+
 const { t } = useI18n()
 const route = useRoute()
 
@@ -17,34 +21,46 @@ function iconNode(Icon: typeof LayoutDashboard) {
     })
 }
 
+function linkLabel(to: string, label: string) {
+  return () =>
+    h(
+      RouterLink,
+      {
+        to,
+        onClick: () => emit('select', to),
+      },
+      { default: () => label },
+    )
+}
+
 const options = computed(() => [
   {
-    label: () => h(RouterLink, { to: '/' }, { default: () => t('nav.dashboard') }),
+    label: linkLabel('/', t('nav.dashboard')),
     key: '/',
     icon: iconNode(LayoutDashboard),
   },
   {
-    label: () => h(RouterLink, { to: '/users' }, { default: () => t('nav.users') }),
+    label: linkLabel('/users', t('nav.users')),
     key: '/users',
     icon: iconNode(Users),
   },
   {
-    label: () => h(RouterLink, { to: '/nodes' }, { default: () => t('nav.nodes') }),
+    label: linkLabel('/nodes', t('nav.nodes')),
     key: '/nodes',
     icon: iconNode(Server),
   },
   {
-    label: () => h(RouterLink, { to: '/routes' }, { default: () => t('nav.routes') }),
+    label: linkLabel('/routes', t('nav.routes')),
     key: '/routes',
     icon: iconNode(Network),
   },
   {
-    label: () => h(RouterLink, { to: '/preauth-keys' }, { default: () => t('nav.preAuthKeys') }),
+    label: linkLabel('/preauth-keys', t('nav.preAuthKeys')),
     key: '/preauth-keys',
     icon: iconNode(KeyRound),
   },
   {
-    label: () => h(RouterLink, { to: '/settings' }, { default: () => t('nav.settings') }),
+    label: linkLabel('/settings', t('nav.settings')),
     key: '/settings',
     icon: iconNode(Settings),
   },
@@ -56,6 +72,10 @@ const selectedKey = computed(() => {
   const match = options.value.find((item) => item.key !== '/' && path.startsWith(item.key))
   return match?.key ?? path
 })
+
+function onMenuUpdate(key: string) {
+  emit('select', key)
+}
 </script>
 
 <template>
@@ -70,7 +90,13 @@ const selectedKey = computed(() => {
       </div>
     </div>
     <nav :aria-label="t('nav.primary')">
-      <NMenu :value="selectedKey" :options="options" :root-indent="16" :indent="16" />
+      <NMenu
+        :value="selectedKey"
+        :options="options"
+        :root-indent="16"
+        :indent="16"
+        @update:value="onMenuUpdate"
+      />
     </nav>
   </div>
 </template>

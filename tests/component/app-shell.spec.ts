@@ -6,24 +6,26 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import { defineComponent, h } from 'vue'
 import { RouterView } from 'vue-router'
 import { createAppI18n } from '@/i18n'
+import { queryKeys } from '@/query/keys'
 import { createAppRouter } from '@/router'
 import { credentialStore } from '@/stores/credentials'
-import { useSettingsStore } from '@/stores/settings'
+import { useSettingsStore, type ThemePreference } from '@/stores/settings'
 import { server } from '../msw/server'
 
-async function renderShell(path: string) {
+async function renderShell(path: string, theme: ThemePreference = 'dark') {
   const pinia = createPinia()
   setActivePinia(pinia)
   credentialStore.clear()
   credentialStore.setApiKey('test-key', 'session')
   useSettingsStore().update({
     baseUrl: 'http://hs.example.com',
-    theme: 'dark',
+    theme,
   })
   const i18n = createAppI18n('en-US')
   const router = createAppRouter()
   await router.push(path)
   await router.isReady()
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
 
   const Root = defineComponent({
     setup() {
@@ -45,18 +47,10 @@ async function renderShell(path: string) {
 
   const view = render(Root, {
     global: {
-      plugins: [
-        pinia,
-        router,
-        i18n,
-        [
-          VueQueryPlugin,
-          { queryClient: new QueryClient({ defaultOptions: { queries: { retry: false } } }) },
-        ],
-      ],
+      plugins: [pinia, router, i18n, [VueQueryPlugin, { queryClient }]],
     },
   })
-  return { ...view, router }
+  return { ...view, router, queryClient }
 }
 
 describe('AppShell', () => {
@@ -89,9 +83,23 @@ describe('AppShell', () => {
     ).toBeGreaterThan(1)
   })
 
+  it('names the mobile navigation drawer dialog', async () => {
+    await renderShell('/')
+    await fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+    expect(screen.getByRole('dialog', { name: 'Primary navigation' })).toBeTruthy()
+  })
+
   it('applies the dark admin theme class on the authenticated shell', async () => {
     const { container } = await renderShell('/')
     expect(container.querySelector('.admin-theme-dark')).toBeTruthy()
+  })
+
+  it('applies the light admin theme class to the teleported mobile drawer', async () => {
+    await renderShell('/', 'light')
+    await fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+    const dialog = screen.getByRole('dialog', { name: 'Primary navigation' })
+    expect(dialog.className).toMatch(/admin-theme-light/)
+    expect(dialog.querySelector('.app-shell__drawer-content')).toBeTruthy()
   })
 
   it('shows instance status with version and database badges', async () => {
@@ -111,7 +119,42 @@ describe('AppShell', () => {
     ).toBeGreaterThan(1)
     await router.push('/users')
     await waitFor(() => {
-      expect(screen.getAllByRole('navigation', { name: 'Primary navigation' })).toHaveLength(1)
+      expect(screen.queryByRole('dialog', { name: 'Primary navigation' })).toBeNull()
     })
+  })
+
+  it('closes the drawer when selecting the current route', async () => {
+    await renderShell('/')
+    await fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+    expect(screen.getByRole('dialog', { name: 'Primary navigation' })).toBeTruthy()
+    const dashboardLinks = screen.getAllByRole('link', { name: 'Dashboard' })
+    await fireEvent.click(dashboardLinks[dashboardLinks.length - 1]!)
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Primary navigation' })).toBeNull()
+    })
+  })
+
+  it('clears cached query data when disconnecting', async () => {
+    const { queryClient, router } = await renderShell('/')
+    queryClient.setQueryData(queryKeys.users(), [
+      {
+        id: '1',
+        name: 'stale-user',
+        displayName: 'Stale',
+        email: '',
+        provider: '',
+        providerId: '',
+        profilePictureUrl: '',
+        createdAt: new Date('2024-01-01T00:00:00Z'),
+      },
+    ])
+    expect(queryClient.getQueryData(queryKeys.users())).toBeTruthy()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }))
+    await waitFor(() => {
+      expect(router.currentRoute.value.path).toBe('/connect')
+    })
+    expect(queryClient.getQueryData(queryKeys.users())).toBeUndefined()
+    expect(credentialStore.getApiKey()).toBeNull()
   })
 })

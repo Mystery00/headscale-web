@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useQueryClient } from '@tanstack/vue-query'
 import { LogOut, Menu } from '@lucide/vue'
 import { NButton, NDrawer, NLayout, NLayoutContent, NLayoutHeader, NLayoutSider } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
@@ -13,6 +14,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const settings = useSettingsStore()
+const queryClient = useQueryClient()
 const menuOpen = ref(false)
 
 const isDark = computed(
@@ -29,9 +31,14 @@ watch(
   },
 )
 
+function closeMenu() {
+  menuOpen.value = false
+}
+
 function disconnect() {
   credentialStore.clear()
   settings.update({ baseUrl: null, credentialPersistence: 'session' })
+  queryClient.clear()
   void router.push('/connect')
 }
 </script>
@@ -48,7 +55,7 @@ function disconnect() {
         :native-scrollbar="false"
         content-style="padding: 0;"
       >
-        <AppNav />
+        <AppNav @select="closeMenu" />
       </NLayoutSider>
       <NLayout class="app-shell__main-layout">
         <NLayoutHeader bordered class="app-shell__header">
@@ -82,8 +89,16 @@ function disconnect() {
       </NLayout>
     </NLayout>
 
-    <NDrawer v-model:show="menuOpen" class="app-shell__drawer" placement="left" :width="260">
-      <AppNav />
+    <NDrawer
+      v-model:show="menuOpen"
+      class="app-shell__drawer"
+      :class="themeClass"
+      content-class="app-shell__drawer-content"
+      placement="left"
+      :width="260"
+      :aria-label="t('nav.primary')"
+    >
+      <AppNav @select="closeMenu" />
     </NDrawer>
   </div>
 </template>
@@ -146,11 +161,6 @@ function disconnect() {
   margin-left: auto;
 }
 
-.app-shell__drawer :deep(.n-drawer-body-content-wrapper) {
-  padding: 0;
-  background: var(--admin-sidebar);
-}
-
 @media (max-width: 860px) {
   .app-shell__sider {
     display: none !important;
@@ -169,5 +179,21 @@ function disconnect() {
   .menu-button__label {
     display: none;
   }
+}
+</style>
+
+<style>
+/* Teleported drawer leaves the scoped shell root; style it globally by class. */
+.n-drawer.app-shell__drawer,
+.n-drawer.app-shell__drawer .n-drawer-content-wrapper,
+.n-drawer.app-shell__drawer .app-shell__drawer-content {
+  color: #e7f8f2;
+  background: var(--admin-sidebar) !important;
+}
+
+.n-drawer.app-shell__drawer .app-shell__drawer-content {
+  box-sizing: border-box;
+  height: 100%;
+  padding: 0;
 }
 </style>
