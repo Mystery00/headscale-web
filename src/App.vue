@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { NConfigProvider, darkTheme, lightTheme } from 'naive-ui'
+import {
+  NConfigProvider,
+  NDialogProvider,
+  NMessageProvider,
+  NNotificationProvider,
+  darkTheme,
+  lightTheme,
+} from 'naive-ui'
 import { computed } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 
@@ -13,6 +20,12 @@ const theme = computed(() => {
 
 <template>
   <NConfigProvider :theme="theme">
-    <router-view />
+    <NMessageProvider>
+      <NNotificationProvider>
+        <NDialogProvider>
+          <router-view />
+        </NDialogProvider>
+      </NNotificationProvider>
+    </NMessageProvider>
   </NConfigProvider>
 </template>

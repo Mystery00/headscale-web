@@ -1,7 +1,9 @@
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { render } from '@testing-library/vue'
+import { NDialogProvider, NMessageProvider, NNotificationProvider } from 'naive-ui'
 import { createPinia, setActivePinia } from 'pinia'
-import { createMemoryHistory, createRouter } from 'vue-router'
+import { defineComponent, h } from 'vue'
+import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
 import { createAppI18n } from '@/i18n'
 import { createAppRouter } from '@/router'
 import { credentialStore } from '@/stores/credentials'
@@ -23,20 +25,28 @@ export async function renderConnected(path: string, page?: Component) {
     : createAppRouter()
   await router.push(path)
   await router.isReady()
-  return render(
-    { template: '<router-view />' },
-    {
-      global: {
-        plugins: [
-          pinia,
-          router,
-          i18n,
-          [
-            VueQueryPlugin,
-            { queryClient: new QueryClient({ defaultOptions: { queries: { retry: false } } }) },
-          ],
-        ],
-      },
+  const Root = defineComponent({
+    setup() {
+      return () =>
+        h(NMessageProvider, null, {
+          default: () =>
+            h(NNotificationProvider, null, {
+              default: () =>
+                h(NDialogProvider, null, {
+                  default: () => h(RouterView),
+                }),
+            }),
+        })
     },
-  )
+  })
+  return render(Root, {
+    global: {
+      plugins: [
+        pinia,
+        router,
+        i18n,
+        [VueQueryPlugin, { queryClient: new QueryClient({ defaultOptions: { queries: { retry: false } } }) }],
+      ],
+    },
+  })
 }
