@@ -11,21 +11,33 @@ import { computed } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 
 const settings = useSettingsStore()
-const theme = computed(() => {
-  if (settings.theme === 'dark') return darkTheme
-  if (settings.theme === 'light') return lightTheme
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? darkTheme : lightTheme
-})
+const isDark = computed(
+  () =>
+    settings.theme === 'dark' ||
+    (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches),
+)
+const theme = computed(() => (isDark.value ? darkTheme : lightTheme))
+const adminThemeClass = computed(() => (isDark.value ? 'admin-theme-dark' : 'admin-theme-light'))
 </script>
 
 <template>
-  <NConfigProvider :theme="theme">
-    <NMessageProvider>
-      <NNotificationProvider>
-        <NDialogProvider>
-          <router-view />
-        </NDialogProvider>
-      </NNotificationProvider>
-    </NMessageProvider>
-  </NConfigProvider>
+  <div class="app-root" :class="adminThemeClass">
+    <NConfigProvider :theme="theme">
+      <NMessageProvider>
+        <NNotificationProvider>
+          <NDialogProvider>
+            <router-view />
+          </NDialogProvider>
+        </NNotificationProvider>
+      </NMessageProvider>
+    </NConfigProvider>
+  </div>
 </template>
+
+<style scoped>
+.app-root {
+  min-height: 100%;
+  color: var(--admin-text);
+  background: var(--admin-bg);
+}
+</style>

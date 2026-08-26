@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/vue'
 import { NConfigProvider } from 'naive-ui'
+import { createPinia, setActivePinia } from 'pinia'
 import { defineComponent, h, nextTick, ref } from 'vue'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import type { DataTableColumns } from 'naive-ui'
+import App from '@/App.vue'
 import AppDataTable from '@/components/ui/AppDataTable.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
@@ -10,7 +13,10 @@ import PageHeader from '@/components/ui/PageHeader.vue'
 import PageToolbar from '@/components/ui/PageToolbar.vue'
 import StatCard from '@/components/ui/StatCard.vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
+import type { User } from '@/domain/user'
 import { createAppI18n } from '@/i18n'
+import { useSettingsStore } from '@/stores/settings'
+import AppDataTableUserHost from './app-data-table-user-host.vue'
 
 function withProviders(
   component: object,
@@ -99,6 +105,64 @@ describe('admin UI primitives', () => {
     await nextTick()
     expect(screen.getByRole('table', { name: 'Users' })).toBeTruthy()
     expect(screen.getByText('alice')).toBeTruthy()
+  })
+
+  it('accepts domain User rows without an index signature', async () => {
+    const data: User[] = [
+      {
+        id: '1',
+        name: 'alice',
+        displayName: 'Alice',
+        email: 'alice@example.com',
+        provider: 'oidc',
+        providerId: 'oidc-1',
+        profilePictureUrl: '',
+        createdAt: new Date('2024-01-02T03:04:05Z'),
+      },
+    ]
+    withProviders(AppDataTableUserHost, { data })
+    await nextTick()
+    expect(screen.getByRole('table', { name: 'Users' })).toBeTruthy()
+    expect(screen.getByText('alice')).toBeTruthy()
+    expect(screen.getByText('alice@example.com')).toBeTruthy()
+  })
+
+  it('applies admin-theme-dark when the resolved theme is dark', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    useSettingsStore().update({ theme: 'dark' })
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: '/', component: { template: '<div>home</div>' } }],
+    })
+    await router.push('/')
+    await router.isReady()
+    const { container } = render(App, {
+      global: {
+        plugins: [pinia, router, createAppI18n('en-US')],
+      },
+    })
+    expect(container.querySelector('.admin-theme-dark')).toBeTruthy()
+    expect(container.querySelector('.admin-theme-light')).toBeNull()
+  })
+
+  it('applies admin-theme-light when the resolved theme is light', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    useSettingsStore().update({ theme: 'light' })
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: '/', component: { template: '<div>home</div>' } }],
+    })
+    await router.push('/')
+    await router.isReady()
+    const { container } = render(App, {
+      global: {
+        plugins: [pinia, router, createAppI18n('en-US')],
+      },
+    })
+    expect(container.querySelector('.admin-theme-light')).toBeTruthy()
+    expect(container.querySelector('.admin-theme-dark')).toBeNull()
   })
 
   it('blocks typed confirmation until the expected value matches', async () => {

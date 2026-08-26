@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends Record<string, unknown>">
+<script setup lang="ts" generic="T extends object">
 import { computed, nextTick, onUpdated, ref, useAttrs, watch } from 'vue'
 import { NDataTable } from 'naive-ui'
 import type { DataTableColumns, DataTableRowKey } from 'naive-ui'
