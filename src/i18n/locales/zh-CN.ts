@@ -1,0 +1,42 @@
+export const zhCN = {
+  app: {
+    title: 'Headscale Web',
+  },
+  connection: {
+    title: '连接 Headscale',
+    urlLabel: 'Headscale 地址',
+    apiKeyLabel: 'API Key',
+    showApiKey: '显示 API Key',
+    hideApiKey: '隐藏 API Key',
+    persistenceSession: '仅当前会话',
+    persistenceLocal: '在此设备长期保存',
+    localRisk: 'API Key 将保存在 localStorage，同源的其他脚本可以读取。',
+    localRiskConfirm: '我了解长期保存的风险',
+    connect: '连接',
+    connecting: '正在连接',
+    steps: {
+      network: '网络',
+      version: '版本',
+      database: '数据库',
+      authorization: '授权',
+    },
+    errors: {
+      empty: '请输入 Headscale 地址。',
+      invalid: '请输入有效的 URL。',
+      unsupportedProtocol: '请使用 http 或 https。',
+      credentialsNotAllowed: 'URL 中不能包含用户名或密码。',
+      network: '无法访问 Headscale。',
+      timeout: '请求超时。',
+      cors: '浏览器拦截了请求。请检查 Headscale 的 CORS 配置。',
+      unsupportedVersion: '当前界面仅支持 Headscale 0.29.x。',
+      unauthorized: 'API Key 被拒绝。',
+      unknown: '连接时出现未知错误。',
+    },
+  },
+  shell: {
+    disconnect: '断开连接',
+    version: '版本',
+    databaseConnected: '数据库正常',
+    databaseDisconnected: '数据库异常',
+  },
+}
