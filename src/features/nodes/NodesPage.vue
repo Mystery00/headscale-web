@@ -1,14 +1,37 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NAlert, NButton, NDrawer, NDrawerContent, NInput, NSpin, useMessage, useNotification } from 'naive-ui'
+import {
+  NButton,
+  NDrawer,
+  NDrawerContent,
+  NInput,
+  NSelect,
+  NSpace,
+  NTag,
+  useMessage,
+  useNotification,
+} from 'naive-ui'
+import type { DataTableColumns } from 'naive-ui'
+import { Clock, KeyRound, Search, Server, Tags } from '@lucide/vue'
+import PageHeader from '@/components/ui/PageHeader.vue'
+import PageToolbar from '@/components/ui/PageToolbar.vue'
+import AppDataTable from '@/components/ui/AppDataTable.vue'
+import StatusBadge from '@/components/ui/StatusBadge.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import { useMaskedKey } from '@/composables/use-masked-key'
-import { normalizeTags } from '@/domain/tags'
 import type { Node } from '@/domain/node'
+import { normalizeTags } from '@/domain/tags'
 import { useNodesQuery } from '@/query/use-headscale-queries'
-import { useDeleteNodeMutation, useExpireNodeNowMutation, useRenameNodeMutation, useSetNodeTagsMutation } from '@/query/use-headscale-mutations'
+import {
+  useDeleteNodeMutation,
+  useExpireNodeNowMutation,
+  useRenameNodeMutation,
+  useSetNodeTagsMutation,
+} from '@/query/use-headscale-mutations'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { mask } = useMaskedKey()
 const message = useMessage()
 const notification = useNotification()
@@ -18,77 +41,388 @@ const setTags = useSetNodeTagsMutation()
 const expireNow = useExpireNodeNowMutation()
 const deleteNode = useDeleteNodeMutation()
 const search = ref('')
+const status = ref<'all' | 'online' | 'offline'>('all')
 const selected = ref<Node | null>(null)
 const renameValue = ref('')
 const tagsValue = ref('')
-const deleteName = ref('')
+const confirmExpire = ref(false)
+const confirmDelete = ref(false)
 
+const statusOptions = computed(() => [
+  { label: t('nodes.allStatuses'), value: 'all' },
+  { label: t('common.online'), value: 'online' },
+  { label: t('common.offline'), value: 'offline' },
+])
 const filtered = computed(() => {
   const term = search.value.trim().toLowerCase()
   return (query.data.value ?? []).filter((node) => {
-    const haystack = `${node.givenName} ${node.name} ${node.user.name} ${node.ipAddresses.join(' ')}`.toLowerCase()
-    return !term || haystack.includes(term)
+    const matchesStatus =
+      status.value === 'all' ||
+      (status.value === 'online' && node.online) ||
+      (status.value === 'offline' && !node.online)
+    const haystack =
+      `${node.givenName} ${node.name} ${node.user.name} ${node.ipAddresses.join(' ')} ${node.tags.join(' ')}`.toLowerCase()
+    return matchesStatus && (!term || haystack.includes(term))
   })
 })
+
+function formatDate(date: Date | null) {
+  if (!date) return '—'
+  return new Intl.DateTimeFormat(locale.value, { dateStyle: 'medium', timeStyle: 'short' }).format(
+    date,
+  )
+}
 
 function open(node: Node) {
   selected.value = node
   renameValue.value = node.givenName || node.name
   tagsValue.value = node.tags.join(', ')
-  deleteName.value = ''
 }
 
-async function run(action: () => Promise<unknown>) {
+function routeCount(node: Node) {
+  return new Set([...node.availableRoutes, ...node.approvedRoutes]).size
+}
+
+const columns = computed<DataTableColumns<Node>>(() => [
+  {
+    title: t('nodes.status'),
+    key: 'status',
+    width: 110,
+    render: (node) =>
+      h(StatusBadge, {
+        label: node.online ? t('common.online') : t('common.offline'),
+        tone: node.online ? 'success' : 'neutral',
+      }),
+  },
+  {
+    title: t('nodes.name'),
+    key: 'name',
+    minWidth: 180,
+    render: (node) =>
+      h('div', { class: 'node-name' }, [
+        h('strong', node.givenName || node.name),
+        node.givenName && node.givenName !== node.name ? h('span', node.name) : null,
+      ]),
+  },
+  { title: t('nodes.user'), key: 'user', width: 130, render: (node) => node.user.name },
+  {
+    title: t('nodes.ip'),
+    key: 'ip',
+    minWidth: 190,
+    render: (node) =>
+      h(
+        'div',
+        { class: 'value-stack' },
+        node.ipAddresses.map((ip) => h('code', { key: ip }, ip)),
+      ),
+  },
+  {
+    title: t('nodes.tags'),
+    key: 'tags',
+    minWidth: 170,
+    render: (node) =>
+      node.tags.length
+        ? h(
+            NSpace,
+            { size: 4, wrap: true },
+            {
+              default: () =>
+                node.tags.map((tag) =>
+                  h(NTag, { key: tag, size: 'small', bordered: false }, { default: () => tag }),
+                ),
+            },
+          )
+        : '—',
+  },
+  {
+    title: t('nodes.routes'),
+    key: 'routes',
+    width: 90,
+    render: (node) => String(routeCount(node)),
+  },
+  {
+    title: t('nodes.lastSeen'),
+    key: 'lastSeen',
+    width: 170,
+    render: (node) => formatDate(node.lastSeen),
+  },
+  {
+    title: t('nodes.expiry'),
+    key: 'expiry',
+    width: 170,
+    render: (node) => formatDate(node.expiry),
+  },
+  {
+    title: t('common.details'),
+    key: 'actions',
+    width: 110,
+    fixed: 'right',
+    render: (node) =>
+      h(
+        NButton,
+        { size: 'small', secondary: true, onClick: () => open(node) },
+        { default: () => t('common.details') },
+      ),
+  },
+])
+
+async function run(action: () => Promise<unknown>, onSuccess?: () => void) {
   try {
     await action()
     message.success(t('common.success'))
+    onSuccess?.()
   } catch {
     notification.error({ title: t('common.failed') })
   }
 }
+
+function onRename() {
+  if (!selected.value) return
+  void run(() =>
+    renameNode.mutateAsync({ nodeId: selected.value!.id, newName: renameValue.value.trim() }),
+  )
+}
+
+function onSetTags() {
+  if (!selected.value) return
+  void run(() =>
+    setTags.mutateAsync({
+      nodeId: selected.value!.id,
+      tags: normalizeTags(tagsValue.value.split(',')),
+    }),
+  )
+}
+
+function onExpire() {
+  if (!selected.value) return
+  void run(
+    () => expireNow.mutateAsync(selected.value!.id),
+    () => {
+      confirmExpire.value = false
+    },
+  )
+}
+
+function onDelete() {
+  if (!selected.value) return
+  void run(
+    () => deleteNode.mutateAsync(selected.value!.id),
+    () => {
+      confirmDelete.value = false
+      selected.value = null
+    },
+  )
+}
 </script>
 
 <template>
-  <section>
-    <h1>{{ t('nodes.title') }}</h1>
-    <NInput v-model:value="search" :placeholder="t('common.search')" :aria-label="t('common.search')" />
-    <NAlert v-if="query.isError.value" type="error">{{ t('common.error') }}</NAlert>
-    <NSpin :show="query.isLoading.value">
-      <p v-if="!query.isLoading.value && filtered.length === 0">{{ t('common.empty') }}</p>
-      <table v-else>
-        <thead>
-          <tr>
-            <th>{{ t('nodes.status') }}</th>
-            <th>{{ t('nodes.name') }}</th>
-            <th>{{ t('nodes.user') }}</th>
-            <th>{{ t('nodes.ip') }}</th>
-            <th>{{ t('nodes.tags') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="node in filtered" :key="node.id">
-            <td>{{ node.online ? t('common.online') : t('common.offline') }}</td>
-            <td><button type="button" @click="open(node)">{{ node.givenName || node.name }}</button></td>
-            <td>{{ node.user.name }}</td>
-            <td>{{ node.ipAddresses.join(', ') }}</td>
-            <td>{{ node.tags.join(', ') }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </NSpin>
-    <NDrawer :show="Boolean(selected)" @update:show="(value: boolean) => !value && (selected = null)">
-      <NDrawerContent :title="t('common.details')">
-        <template v-if="selected">
-          <p>{{ t('nodes.machineKey') }}: {{ mask(selected.machineKey) }}</p>
-          <NInput v-model:value="renameValue" :aria-label="t('common.rename')" />
-          <NButton :disabled="renameNode.isPending.value" @click="run(() => renameNode.mutateAsync({ nodeId: selected!.id, newName: renameValue }))">{{ t('common.rename') }}</NButton>
-          <NInput v-model:value="tagsValue" :aria-label="t('nodes.setTags')" />
-          <NButton :disabled="setTags.isPending.value" @click="run(() => setTags.mutateAsync({ nodeId: selected!.id, tags: normalizeTags(tagsValue.split(',')) }))">{{ t('nodes.setTags') }}</NButton>
-          <NButton type="warning" :disabled="expireNow.isPending.value" @click="run(() => expireNow.mutateAsync(selected!.id))">{{ t('nodes.expireNow') }}</NButton>
-          <NInput v-model:value="deleteName" :aria-label="t('nodes.confirmName')" :placeholder="t('nodes.confirmName')" />
-          <NButton type="error" :disabled="deleteName !== (selected.givenName || selected.name) || deleteNode.isPending.value" @click="run(() => deleteNode.mutateAsync(selected!.id))">{{ t('common.delete') }}</NButton>
-        </template>
+  <section class="admin-page nodes-page">
+    <PageHeader :title="t('nodes.title')" :description="t('nodes.description')" />
+
+    <PageToolbar>
+      <NInput
+        v-model:value="search"
+        clearable
+        :placeholder="t('common.search')"
+        :input-props="{ 'aria-label': t('common.search') }"
+        class="search-input"
+      >
+        <template #prefix><Search :size="17" aria-hidden="true" /></template>
+      </NInput>
+      <NSelect
+        v-model:value="status"
+        :options="statusOptions"
+        :aria-label="t('nodes.status')"
+        class="status-select"
+      />
+    </PageToolbar>
+
+    <AppDataTable
+      :columns="columns"
+      :data="filtered"
+      :loading="query.isLoading.value"
+      :row-key="(node) => node.id"
+      :aria-label="t('nodes.title')"
+      :scroll-x="1350"
+    >
+      <template #empty
+        ><EmptyState :title="query.isError.value ? t('common.error') : t('common.empty')"
+      /></template>
+    </AppDataTable>
+
+    <NDrawer
+      :show="Boolean(selected)"
+      :width="460"
+      @update:show="(value: boolean) => !value && (selected = null)"
+    >
+      <NDrawerContent v-if="selected" :title="selected.givenName || selected.name" closable>
+        <div class="drawer-stack">
+          <section class="drawer-section">
+            <h2><Server :size="17" aria-hidden="true" />{{ t('nodes.overview') }}</h2>
+            <dl>
+              <div>
+                <dt>{{ t('nodes.status') }}</dt>
+                <dd>
+                  <StatusBadge
+                    :label="selected.online ? t('common.online') : t('common.offline')"
+                    :tone="selected.online ? 'success' : 'neutral'"
+                  />
+                </dd>
+              </div>
+              <div>
+                <dt>{{ t('nodes.user') }}</dt>
+                <dd>{{ selected.user.name }}</dd>
+              </div>
+              <div>
+                <dt>{{ t('nodes.registerMethod') }}</dt>
+                <dd>{{ selected.registerMethod }}</dd>
+              </div>
+              <div>
+                <dt>{{ t('nodes.createdAt') }}</dt>
+                <dd>{{ formatDate(selected.createdAt) }}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="drawer-section">
+            <h2><KeyRound :size="17" aria-hidden="true" />{{ t('nodes.keys') }}</h2>
+            <code>{{ t('nodes.machineKey') }}: {{ mask(selected.machineKey) }}</code>
+            <code>{{ t('nodes.nodeKey') }}: {{ mask(selected.nodeKey) }}</code>
+            <code>{{ t('nodes.discoKey') }}: {{ mask(selected.discoKey) }}</code>
+          </section>
+
+          <section class="drawer-section">
+            <h2>{{ t('common.rename') }}</h2>
+            <NInput
+              v-model:value="renameValue"
+              :input-props="{ 'aria-label': t('common.rename') }"
+            />
+            <NButton
+              :loading="renameNode.isPending.value"
+              :disabled="!renameValue.trim()"
+              @click="onRename"
+              >{{ t('common.rename') }}</NButton
+            >
+          </section>
+
+          <section class="drawer-section">
+            <h2><Tags :size="17" aria-hidden="true" />{{ t('nodes.setTags') }}</h2>
+            <NInput
+              v-model:value="tagsValue"
+              :input-props="{ 'aria-label': t('nodes.setTags') }"
+              :placeholder="t('nodes.tagsPlaceholder')"
+            />
+            <NButton :loading="setTags.isPending.value" @click="onSetTags">{{
+              t('nodes.setTags')
+            }}</NButton>
+          </section>
+
+          <section class="drawer-section danger-zone">
+            <h2><Clock :size="17" aria-hidden="true" />{{ t('nodes.dangerZone') }}</h2>
+            <NSpace vertical>
+              <NButton type="warning" secondary @click="confirmExpire = true">{{
+                t('nodes.expireNow')
+              }}</NButton>
+              <NButton type="error" secondary @click="confirmDelete = true">{{
+                t('common.delete')
+              }}</NButton>
+            </NSpace>
+          </section>
+        </div>
       </NDrawerContent>
     </NDrawer>
+
+    <ConfirmDialog
+      v-if="selected"
+      v-model:show="confirmExpire"
+      :title="t('nodes.expireTitle')"
+      :message="t('nodes.expireMessage', { name: selected.givenName || selected.name })"
+      :confirm-label="t('nodes.expireNow')"
+      danger
+      :pending="expireNow.isPending.value"
+      @confirm="onExpire"
+    />
+    <ConfirmDialog
+      v-if="selected"
+      v-model:show="confirmDelete"
+      :title="t('nodes.deleteTitle')"
+      :message="t('nodes.deleteMessage', { name: selected.givenName || selected.name })"
+      :confirm-label="t('nodes.confirmDelete')"
+      :confirm-text="t('nodes.confirmName')"
+      :expected-text="selected.givenName || selected.name"
+      danger
+      :pending="deleteNode.isPending.value"
+      @confirm="onDelete"
+    />
   </section>
 </template>
+
+<style scoped>
+.search-input {
+  width: min(25rem, 100%);
+}
+.status-select {
+  width: min(12rem, 100%);
+}
+.node-name,
+.value-stack {
+  display: grid;
+  gap: 0.15rem;
+}
+.node-name strong {
+  color: var(--admin-text);
+}
+.node-name span,
+.value-stack code {
+  color: var(--admin-muted);
+  font-size: 0.75rem;
+}
+.drawer-stack {
+  display: grid;
+  gap: 1rem;
+}
+.drawer-section {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface-muted);
+}
+.drawer-section h2 {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 0.92rem;
+}
+.drawer-section code {
+  overflow-wrap: anywhere;
+  color: var(--admin-muted);
+  font-size: 0.75rem;
+}
+dl {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+}
+dl div {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+dt {
+  color: var(--admin-muted);
+}
+dd {
+  margin: 0;
+  color: var(--admin-text);
+  font-weight: 600;
+  text-align: right;
+}
+.danger-zone {
+  border-color: color-mix(in srgb, var(--admin-danger) 35%, var(--admin-border));
+}
+</style>
