@@ -12,6 +12,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const route = useRoute()
+const brandIconSrc = `${import.meta.env.BASE_URL}favicon.svg`
 
 function iconNode(Icon: typeof LayoutDashboard) {
   return () =>
@@ -83,7 +84,7 @@ function onMenuUpdate(key: string) {
   <div class="app-nav">
     <div class="app-nav__brand">
       <span class="app-nav__mark" aria-hidden="true">
-        <Server :size="20" :stroke-width="1.8" />
+        <img :src="brandIconSrc" width="28" height="28" alt="" />
       </span>
       <div class="app-nav__copy">
         <strong>{{ t('app.title') }}</strong>
@@ -127,9 +128,16 @@ function onMenuUpdate(key: string) {
   width: 2.5rem;
   height: 2.5rem;
   place-items: center;
+  overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 0.85rem;
   background: rgba(255, 255, 255, 0.08);
+}
+
+.app-nav__mark img {
+  display: block;
+  width: 28px;
+  height: 28px;
 }
 
 .app-nav__copy {
