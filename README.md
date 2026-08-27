@@ -12,6 +12,8 @@ Implementation in progress for Headscale `0.29.x`. The product name is not versi
 
 See [docs/design.md](docs/design.md). Deploy notes: [docs/deploy.md](docs/deploy.md).
 
+Demo: https://mystery00.github.io/headscale-web/
+
 ## Develop
 
 ```bash
