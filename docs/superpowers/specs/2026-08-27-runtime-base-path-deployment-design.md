@@ -54,7 +54,7 @@ https://example.com/tools/headscale/assets/index.js
 
 `createAppRouter` will receive the derived base path instead of reading `import.meta.env.BASE_URL`. The production entry point will pass `import.meta.url`. Tests can pass explicit module URLs.
 
-This design assumes that the generated application bundle remains in its normal `assets/` directory next to `index.html`.
+This design assumes that the generated application bundle remains in its normal ssets/ directory next to index.html. Because asset references are relative, client routes are canonical single-segment URLs without trailing slashes. Supported routes are /connect, /users, /nodes, /routes, /preauth-keys, and /settings, relative to the deployment base. Static servers redirect trailing-slash forms and return 404 for unsupported multi-segment routes.
 
 ## Bare Static-file Deployment
 
@@ -77,7 +77,7 @@ Public URL:
 https://admin.example.com/
 ```
 
-The server must fall back to `/index.html` for application routes.
+The server must serve `/index.html` for the known single-segment application routes, redirect their trailing-slash forms, and return 404 for unsupported multi-segment routes.
 
 ### Subpath Deployment
 
@@ -97,7 +97,7 @@ Public URL:
 https://example.com/admin/
 ```
 
-The server must fall back to `/admin/index.html` for routes below `/admin/`. Requests outside `/admin/` must not fall through to the application.
+The server must serve `/admin/index.html` for the known single-segment routes below `/admin/`, redirect their trailing-slash forms, and return 404 for unsupported multi-segment routes. Requests outside `/admin/` must not fall through to the application.
 
 ### Static Server Requirements
 
@@ -177,7 +177,7 @@ The entrypoint will generate the Nginx configuration at `/var/run/headscale-web/
 - `/healthz` available independently of the application base path.
 - A location restricted to `APP_BASE_PATH`.
 - Static file lookup rooted at `/var/run/headscale-web-site`.
-- SPA fallback to `${APP_BASE_PATH}index.html`.
+- Exact handling of known single-segment routes through `${APP_BASE_PATH}index.html` with canonical trailing-slash redirects.
 - A 404 response outside the configured application path, except `/healthz`.
 - Existing security headers.
 
@@ -220,11 +220,11 @@ Automated coverage will include:
 - Router tests proving navigation works with an injected subpath base.
 - Existing component and end-to-end tests under the root base.
 - Production build verification that generated asset references are relative.
-- Docker smoke tests for `/` and `/admin/`, including direct application routes and `/healthz`, when the local Docker environment is available.
+- Docker smoke tests for `/` and `/admin/`, including direct routes, trailing-slash redirects, multi-segment 404 behavior, assets, and `/healthz`, when the local Docker environment is available.
 
 ## Migration and Compatibility
 
 - Existing root deployments continue to work with the default `APP_BASE_PATH=/`.
 - Existing Docker builds using `--build-arg VITE_BASE_PATH=...` must switch to `-e APP_BASE_PATH=...` at container startup.
 - Existing manually built subpath deployments no longer need separate builds. They copy the same `dist/` contents into the desired path directory.
-- Static servers still require a correctly scoped SPA fallback.
+- Static servers require exact handling for the documented single-segment client routes, canonical trailing-slash redirects, and 404 behavior for unsupported multi-segment routes.

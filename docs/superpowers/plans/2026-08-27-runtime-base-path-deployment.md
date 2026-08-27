@@ -810,3 +810,15 @@ git log -4 --oneline
 ```
 
 Expected: clean working tree and separate commits for frontend relocation, Docker runtime deployment, and static deployment documentation, plus any narrowly scoped review-fix commit.
+## Review Fix: Canonical Single-segment Client Routes
+
+The defect-first review identified that `base: './'` cannot load assets when the same `index.html` is served at a trailing-slash client route or unsupported multi-segment route. The approved resolution narrows static route handling to the application's known single-segment routes: `/connect`, `/users`, `/nodes`, `/routes`, `/preauth-keys`, and `/settings`, relative to the deployment base.
+
+Implementation and verification added after the original tasks:
+
+- Docker Nginx serves `index.html` only for the known routes.
+- Trailing-slash forms such as `/nodes/` and `/admin/nodes/` redirect with 308 to canonical no-trailing-slash URLs.
+- Unsupported multi-segment paths such as `/settings/profile` and `/admin/settings/profile` return 404.
+- Static Nginx and Caddy examples document the same contract.
+- Docker browser-level HTTP tests verify that redirected pages load JavaScript assets rather than receiving SPA HTML for asset requests.
+- Docker validation rejects LF and CR characters before regex validation to prevent multiline configuration injection.

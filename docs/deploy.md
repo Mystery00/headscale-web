@@ -11,7 +11,20 @@ pnpm build
 
 The production build is relocatable. The same `dist/` contents can be served at `/`, `/admin/`, or a deeper same-origin path without rebuilding. No base-path build variable is required.
 
-The public URL and the directory containing `index.html` must match. Every deployment also needs a scoped SPA fallback so direct routes such as `/nodes` or `/admin/nodes` return the correct `index.html`.
+The public URL and the directory containing `index.html` must match.
+
+The application uses these single-segment client routes:
+
+```text
+/connect
+/users
+/nodes
+/routes
+/preauth-keys
+/settings
+```
+
+Client routes use no trailing slash. Static servers should redirect a trailing-slash form such as `/nodes/` to `/nodes`, return `index.html` for the listed routes, serve real static files normally, and return 404 for unsupported multi-segment paths. This prevents relative assets from being resolved below a client route.
 
 ## Static files at `/`
 
@@ -19,9 +32,9 @@ Copy the contents of `dist/` directly into the configured web root:
 
 ```text
 /srv/headscale-web/
-├── index.html
-├── assets/
-└── favicon.svg
+|-- index.html
+|-- assets/
+`-- favicon.svg
 ```
 
 Public URL:
@@ -30,7 +43,32 @@ Public URL:
 https://admin.example.com/
 ```
 
-The server must fall back to `/index.html` for unknown application routes.
+### Root Nginx example
+
+```nginx
+server {
+    listen 8080;
+    root /srv/headscale-web;
+
+    location ~ ^/(connect|users|nodes|routes|preauth-keys|settings)/$ {
+        return 308 /$1;
+    }
+
+    location ~ ^/(connect|users|nodes|routes|preauth-keys|settings)$ {
+        try_files /index.html =404;
+    }
+
+    location = / {
+        try_files /index.html =404;
+    }
+
+    location / {
+        try_files $uri =404;
+    }
+}
+```
+
+The checked-in `Caddyfile` provides the equivalent root deployment example.
 
 ## Static files at `/admin/`
 
@@ -38,10 +76,10 @@ Copy the unchanged `dist/` contents into `/srv/www/admin/`:
 
 ```text
 /srv/www/
-└── admin/
-    ├── index.html
-    ├── assets/
-    └── favicon.svg
+`-- admin/
+    |-- index.html
+    |-- assets/
+    `-- favicon.svg
 ```
 
 Public URL:
@@ -49,8 +87,6 @@ Public URL:
 ```text
 https://headscale.example.com/admin/
 ```
-
-The server must fall back to `/admin/index.html` only for requests below `/admin/`. Requests outside `/admin/` must not enter this SPA fallback.
 
 ## Same-origin Nginx example
 
@@ -60,7 +96,7 @@ https://headscale.example.com/api/*   -> Headscale
 https://headscale.example.com/version -> Headscale
 ```
 
-Proxy Headscale before the SPA fallback:
+Proxy Headscale before handling UI files:
 
 ```nginx
 server {
@@ -80,13 +116,25 @@ server {
         return 308 /admin/;
     }
 
+    location ~ ^/admin/(connect|users|nodes|routes|preauth-keys|settings)/$ {
+        return 308 /admin/$1;
+    }
+
+    location ~ ^/admin/(connect|users|nodes|routes|preauth-keys|settings)$ {
+        try_files /admin/index.html =404;
+    }
+
+    location = /admin/ {
+        try_files /admin/index.html =404;
+    }
+
     location /admin/ {
-        try_files $uri $uri/ /admin/index.html;
+        try_files $uri =404;
     }
 }
 ```
 
-Keep your existing Headscale WebSocket, TLS, and proxy-header settings. Do not allow `/api/*` or `/version` to fall through to `index.html`.
+Keep your existing Headscale WebSocket, TLS, and proxy-header settings. Do not allow `/api/*` or `/version` to reach UI route handling.
 
 ## Same-origin Caddy example
 
@@ -101,12 +149,31 @@ headscale.example.com {
     }
 
     redir /admin /admin/ 308
+    redir /admin/connect/ /admin/connect 308
+    redir /admin/users/ /admin/users 308
+    redir /admin/nodes/ /admin/nodes 308
+    redir /admin/routes/ /admin/routes 308
+    redir /admin/preauth-keys/ /admin/preauth-keys 308
+    redir /admin/settings/ /admin/settings 308
 
-    handle /admin/* {
+    @admin_routes path /admin/ /admin/connect /admin/users /admin/nodes /admin/routes /admin/preauth-keys /admin/settings
+    handle @admin_routes {
         root * /srv/www
-        try_files {path} /admin/index.html
+        rewrite * /admin/index.html
         file_server
     }
+
+    handle /admin/assets/* {
+        root * /srv/www
+        file_server
+    }
+
+    handle /admin/favicon.svg {
+        root * /srv/www
+        file_server
+    }
+
+    respond 404
 }
 ```
 
@@ -167,9 +234,10 @@ The container:
 - Stores immutable build output under `/opt/headscale-web/`.
 - Creates the runtime site under `/var/run/headscale-web-site/`.
 - Generates Nginx configuration at `/var/run/headscale-web/nginx.conf`.
-- Returns 404 outside the configured subpath, except for `/healthz`.
+- Redirects trailing-slash forms of supported client routes to their canonical URLs.
+- Returns 404 for unsupported multi-segment paths and outside the configured subpath, except for `/healthz`.
 
-`APP_BASE_PATH` defaults to `/`. It must start and end with `/` and must not contain empty segments (`//`), `.` or `..` segments, backslashes, query strings, fragments, whitespace, or configuration control characters. The container exits before starting Nginx when the value is invalid.
+`APP_BASE_PATH` defaults to `/`. It must start and end with `/` and must not contain empty segments (`//`), `.` or `..` segments, backslashes, query strings, fragments, whitespace, control characters, or configuration syntax. The container exits before starting Nginx when the value is invalid.
 
 Both tmpfs mounts need a writable mode because the container process runs as user `101`.
 

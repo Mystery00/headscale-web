@@ -71,15 +71,16 @@ async function startContainer(
   return { name, origin }
 }
 
-async function expectApplicationAt(origin: string, basePath: string): Promise<void> {
-  const response = await fetch(`${origin}${basePath}`)
+async function expectApplicationAt(origin: string, path: string): Promise<Response> {
+  const response = await fetch(`${origin}${path}`)
   expect(response.status).toBe(200)
   const html = await response.text()
   const scriptPath = html.match(/<script[^>]+src="(\.\/assets\/[^"]+)"/)?.[1]
   if (!scriptPath) throw new Error('Generated index does not reference a relative JavaScript asset')
-  const assetResponse = await fetch(new URL(scriptPath, `${origin}${basePath}`))
+  const assetResponse = await fetch(new URL(scriptPath, response.url))
   expect(assetResponse.status).toBe(200)
   expect(assetResponse.headers.get('content-type')).not.toContain('text/html')
+  return response
 }
 
 describe.runIf(enabled)('Docker runtime base path', () => {
@@ -102,6 +103,9 @@ describe.runIf(enabled)('Docker runtime base path', () => {
     const { origin } = await startContainer('/')
     await expectApplicationAt(origin, '/')
     expect((await fetch(`${origin}/nodes`)).status).toBe(200)
+    const trailingSlash = await expectApplicationAt(origin, '/nodes/')
+    expect(trailingSlash.url).toBe(`${origin}/nodes`)
+    expect((await fetch(`${origin}/settings/profile`)).status).toBe(404)
     expect((await fetch(`${origin}/healthz`)).status).toBe(200)
   })
 
@@ -109,6 +113,9 @@ describe.runIf(enabled)('Docker runtime base path', () => {
     const { origin } = await startContainer('/admin/', true)
     await expectApplicationAt(origin, '/admin/')
     expect((await fetch(`${origin}/admin/nodes`)).status).toBe(200)
+    const trailingSlash = await expectApplicationAt(origin, '/admin/nodes/')
+    expect(trailingSlash.url).toBe(`${origin}/admin/nodes`)
+    expect((await fetch(`${origin}/admin/settings/profile`)).status).toBe(404)
     expect((await fetch(`${origin}/admin`)).status).toBe(200)
     expect((await fetch(`${origin}/`)).status).toBe(404)
     expect((await fetch(`${origin}/healthz`)).status).toBe(200)

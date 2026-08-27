@@ -68,11 +68,30 @@ http {
         }
 NGINX_HEADER
 
+for route in connect users nodes routes preauth-keys settings; do
+  route_path=${base_path}${route}
+  route_with_trailing_slash=${route_path}/
+  cat >> "$config_file" <<NGINX_ROUTE
+
+        location = "$route_path" {
+            try_files "${base_path}index.html" =404;
+        }
+
+        location = "$route_with_trailing_slash" {
+            return 308 "$route_path";
+        }
+NGINX_ROUTE
+done
+
 if [ "$base_path" = / ]; then
   cat >> "$config_file" <<'NGINX_ROOT'
 
+        location = / {
+            try_files /index.html =404;
+        }
+
         location / {
-            try_files $uri $uri/ /index.html;
+            try_files $uri =404;
         }
 NGINX_ROOT
 else
@@ -83,8 +102,12 @@ else
             return 308 "$base_path";
         }
 
+        location = "$base_path" {
+            try_files "${base_path}index.html" =404;
+        }
+
         location "$base_path" {
-            try_files \$uri \$uri/ "${base_path}index.html";
+            try_files \$uri =404;
         }
 
         location / {

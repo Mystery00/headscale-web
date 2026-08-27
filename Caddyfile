@@ -1,12 +1,36 @@
 :8080 {
 	encode gzip
-	root * /srv/headscale-web
-	try_files {path} /index.html
-	file_server
 	header X-Content-Type-Options nosniff
 	header Referrer-Policy no-referrer
 	header Content-Security-Policy "default-src 'self'; connect-src 'self'; frame-ancestors 'none'"
+
 	handle /healthz {
 		respond "ok" 200
 	}
+
+	redir /connect/ /connect 308
+	redir /users/ /users 308
+	redir /nodes/ /nodes 308
+	redir /routes/ /routes 308
+	redir /preauth-keys/ /preauth-keys 308
+	redir /settings/ /settings 308
+
+	@app_routes path / /connect /users /nodes /routes /preauth-keys /settings
+	handle @app_routes {
+		root * /srv/headscale-web
+		rewrite * /index.html
+		file_server
+	}
+
+	handle /assets/* {
+		root * /srv/headscale-web
+		file_server
+	}
+
+	handle /favicon.svg {
+		root * /srv/headscale-web
+		file_server
+	}
+
+	respond 404
 }
