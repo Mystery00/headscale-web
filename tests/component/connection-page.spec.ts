@@ -57,10 +57,11 @@ describe('ConnectionPage', () => {
     server.close()
   })
 
-  it('renders URL and API key fields', async () => {
+  it('renders URL, API key, and frontend version', async () => {
     await renderPage()
     expect(screen.getByLabelText('Headscale URL')).toBeTruthy()
     expect(screen.getByLabelText('API Key')).toBeTruthy()
+    expect(screen.getByText('dev')).toBeTruthy()
   })
 
   it('presents the connection checks as a labelled status region', async () => {

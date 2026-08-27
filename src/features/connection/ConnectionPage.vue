@@ -16,6 +16,7 @@ import {
 } from '@lucide/vue'
 import { AppApiError } from '@/api/errors'
 import { createHeadscaleHttp } from '@/api/http'
+import { appVersion } from '@/config/app'
 import type { CredentialPersistence } from '@/domain/credentials'
 import { parseConnectionForm } from '@/features/connection/connection-schema'
 import { createSystemRepository } from '@/repositories/system-repository'
@@ -159,7 +160,10 @@ async function connect() {
           <Server :size="28" :stroke-width="1.8" />
         </div>
         <div class="brand-copy">
-          <p class="eyebrow">{{ t('app.title') }}</p>
+          <p class="eyebrow">
+            <span>{{ t('app.title') }}</span>
+            <span class="app-version">{{ appVersion }}</span>
+          </p>
           <h1>{{ t('connection.title') }}</h1>
           <p class="description">{{ t('connection.description') }}</p>
         </div>
@@ -409,12 +413,26 @@ async function connect() {
 }
 
 .eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
   margin: 0 0 14px;
   color: rgba(236, 253, 245, 0.72);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+.app-version {
+  padding: 0.18rem 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  color: rgba(236, 253, 245, 0.9);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: none;
 }
 
 h1 {

@@ -70,10 +70,11 @@ describe('AppShell', () => {
     server.close()
   })
 
-  it('renders a labelled admin navigation and main content region', async () => {
+  it('renders navigation, main content, and the frontend version', async () => {
     await renderShell('/')
     expect(screen.getByRole('navigation', { name: 'Primary navigation' })).toBeTruthy()
     expect(screen.getByRole('main')).toBeTruthy()
+    expect(screen.getByText('dev')).toBeTruthy()
   })
 
   it('opens the navigation drawer from the mobile menu button', async () => {

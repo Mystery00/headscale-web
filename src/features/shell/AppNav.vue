@@ -4,6 +4,7 @@ import { NMenu } from 'naive-ui'
 import { computed, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
+import { appVersion } from '@/config/app'
 
 const emit = defineEmits<{
   select: [key: string]
@@ -86,7 +87,10 @@ function onMenuUpdate(key: string) {
       </span>
       <div class="app-nav__copy">
         <strong>{{ t('app.title') }}</strong>
-        <span>{{ t('shell.consoleLabel') }}</span>
+        <span class="app-nav__meta">
+          <span>{{ t('shell.consoleLabel') }}</span>
+          <span class="app-nav__version">{{ appVersion }}</span>
+        </span>
       </div>
     </div>
     <nav :aria-label="t('nav.primary')">
@@ -142,9 +146,22 @@ function onMenuUpdate(key: string) {
   white-space: nowrap;
 }
 
-.app-nav__copy span {
+.app-nav__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
   color: rgba(231, 248, 242, 0.68);
   font-size: 0.72rem;
+}
+
+.app-nav__version {
+  padding: 0.08rem 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  color: rgba(231, 248, 242, 0.86);
+  font-size: 0.64rem;
+  line-height: 1.2;
 }
 
 :deep(.n-menu) {
