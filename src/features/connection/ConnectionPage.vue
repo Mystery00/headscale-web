@@ -29,6 +29,7 @@ type StepState = 'idle' | 'running' | 'ok' | 'fail'
 const { t } = useI18n()
 const router = useRouter()
 const settings = useSettingsStore()
+const brandIconSrc = `${import.meta.env.BASE_URL}favicon.svg`
 
 const baseUrl = ref(settings.baseUrl ?? '')
 const apiKey = ref('')
@@ -157,7 +158,7 @@ async function connect() {
     <section class="connection-card">
       <div class="brand-panel">
         <div class="brand-mark" aria-hidden="true">
-          <Server :size="28" :stroke-width="1.8" />
+          <img :src="brandIconSrc" width="40" height="40" alt="" />
         </div>
         <div class="brand-copy">
           <p class="eyebrow">
@@ -402,10 +403,17 @@ async function connect() {
   width: 54px;
   height: 54px;
   place-items: center;
+  overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.12);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.brand-mark img {
+  display: block;
+  width: 40px;
+  height: 40px;
 }
 
 .brand-copy {
