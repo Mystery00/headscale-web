@@ -21,6 +21,18 @@ describe('UsersPage', () => {
     expect(screen.getByText('alice@example.com')).toBeTruthy()
   })
 
+  it('shows related node counts and links to the filtered nodes page', async () => {
+    const { router } = await renderConnected('/users', UsersPage)
+
+    const countLink = await screen.findByRole('button', {
+      name: 'View 1 related nodes for alice',
+    })
+    await fireEvent.click(countLink)
+
+    await waitFor(() => expect(router.currentRoute.value.path).toBe('/nodes'))
+    expect(router.currentRoute.value.query.userId).toBe('1')
+  })
+
   it('keeps stale rows visible but surfaces a failed background refresh', async () => {
     const { queryClient } = await renderConnected('/users', UsersPage)
     expect(await screen.findByText('alice')).toBeTruthy()
@@ -42,7 +54,7 @@ describe('UsersPage', () => {
     )
     await renderConnected('/users', UsersPage)
     await fireEvent.click(await screen.findByRole('button', { name: 'Details' }))
-    expect(screen.getByText('Unavailable')).toBeTruthy()
+    expect(screen.getAllByText('Unavailable')).toHaveLength(2)
     expect((screen.getByRole('button', { name: 'Delete' }) as HTMLButtonElement).disabled).toBe(
       true,
     )

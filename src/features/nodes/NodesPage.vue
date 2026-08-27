@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, h, ref } from 'vue'
+import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import {
   NButton,
   NDrawer,
@@ -24,7 +25,7 @@ import { useMaskedKey } from '@/composables/use-masked-key'
 import { formatDateTime } from '@/domain/datetime'
 import type { Node } from '@/domain/node'
 import { normalizeTags } from '@/domain/tags'
-import { useNodesQuery } from '@/query/use-headscale-queries'
+import { useNodesQuery, useUsersQuery } from '@/query/use-headscale-queries'
 import { useSettingsStore } from '@/stores/settings'
 import {
   useDeleteNodeMutation,
@@ -34,17 +35,21 @@ import {
 } from '@/query/use-headscale-mutations'
 
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 const { mask } = useMaskedKey()
 const message = useMessage()
 const notification = useNotification()
 const settings = useSettingsStore()
 const query = useNodesQuery()
+const users = useUsersQuery()
 const renameNode = useRenameNodeMutation()
 const setTags = useSetNodeTagsMutation()
 const expireNow = useExpireNodeNowMutation()
 const deleteNode = useDeleteNodeMutation()
 const search = ref('')
 const status = ref<'all' | 'online' | 'offline'>('all')
+const ownerId = ref(typeof route.query.userId === 'string' ? route.query.userId : '')
 const selected = ref<Node | null>(null)
 const renameValue = ref('')
 const tagsValue = ref('')
@@ -56,6 +61,35 @@ const statusOptions = computed(() => [
   { label: t('common.online'), value: 'online' },
   { label: t('common.offline'), value: 'offline' },
 ])
+const ownerOptions = computed(() => {
+  const owners = new Map<string, string>()
+  for (const user of users.data.value ?? []) owners.set(user.id, user.name)
+  for (const node of query.data.value ?? []) {
+    if (!owners.has(node.user.id)) owners.set(node.user.id, node.user.name)
+  }
+  return [
+    { label: t('nodes.allUsers'), value: '' },
+    ...[...owners.entries()]
+      .sort((left, right) => left[1].localeCompare(right[1]))
+      .map(([value, label]) => ({ label, value })),
+  ]
+})
+
+watch(
+  () => route.query.userId,
+  (value) => {
+    ownerId.value = typeof value === 'string' ? value : ''
+  },
+)
+
+watch(ownerId, (value) => {
+  const current = typeof route.query.userId === 'string' ? route.query.userId : ''
+  if (value === current) return
+  const nextQuery = { ...route.query }
+  if (value) nextQuery.userId = value
+  else delete nextQuery.userId
+  void router.replace({ query: nextQuery })
+})
 const filtered = computed(() => {
   const term = search.value.trim().toLowerCase()
   return (query.data.value ?? []).filter((node) => {
@@ -63,9 +97,10 @@ const filtered = computed(() => {
       status.value === 'all' ||
       (status.value === 'online' && node.online) ||
       (status.value === 'offline' && !node.online)
+    const matchesOwner = !ownerId.value || node.user.id === ownerId.value
     const haystack =
       `${node.givenName} ${node.name} ${node.user.name} ${node.ipAddresses.join(' ')} ${node.tags.join(' ')}`.toLowerCase()
-    return matchesStatus && (!term || haystack.includes(term))
+    return matchesStatus && matchesOwner && (!term || haystack.includes(term))
   })
 })
 
@@ -98,11 +133,7 @@ const columns = computed<DataTableColumns<Node>>(() => [
     title: t('nodes.name'),
     key: 'name',
     minWidth: 180,
-    render: (node) =>
-      h('div', { class: 'node-name' }, [
-        h('strong', node.givenName || node.name),
-        node.givenName && node.givenName !== node.name ? h('span', node.name) : null,
-      ]),
+    render: (node) => h('strong', { class: 'node-name' }, node.givenName || node.name),
   },
   { title: t('nodes.user'), key: 'user', width: 130, render: (node) => node.user.name },
   {
@@ -111,9 +142,18 @@ const columns = computed<DataTableColumns<Node>>(() => [
     minWidth: 190,
     render: (node) =>
       h(
-        'div',
-        { class: 'value-stack' },
-        node.ipAddresses.map((ip) => h('code', { key: ip }, ip)),
+        NSpace,
+        { size: 4, wrap: true },
+        {
+          default: () =>
+            [...new Set(node.ipAddresses)].map((ip) =>
+              h(
+                NTag,
+                { key: ip, size: 'small', bordered: false, round: true, class: 'ip-chip' },
+                { default: () => ip },
+              ),
+            ),
+        },
       ),
   },
   {
@@ -234,6 +274,12 @@ function onDelete() {
         :options="statusOptions"
         :aria-label="t('nodes.status')"
         class="status-select"
+      />
+      <NSelect
+        v-model:value="ownerId"
+        :options="ownerOptions"
+        :aria-label="t('nodes.owner')"
+        class="owner-select"
       />
     </PageToolbar>
 
@@ -374,18 +420,15 @@ function onDelete() {
 .status-select {
   width: min(12rem, 100%);
 }
-.node-name,
-.value-stack {
-  display: grid;
-  gap: 0.15rem;
+.owner-select {
+  width: min(14rem, 100%);
 }
-.node-name strong {
+.node-name {
   color: var(--admin-text);
 }
-.node-name span,
-.value-stack code {
-  color: var(--admin-muted);
-  font-size: 0.75rem;
+:deep(.ip-chip) {
+  color: var(--admin-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 .drawer-stack {
   display: grid;

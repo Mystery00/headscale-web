@@ -49,10 +49,18 @@ const tags = ref('')
 const plaintext = ref<string | null>(null)
 const saved = ref(false)
 const pendingAction = ref<{ kind: 'expire' | 'delete'; key: PreAuthKey } | null>(null)
+type BulkDeleteState = Extract<PreAuthKeyState, 'expired' | 'used'>
+const bulkDeleteState = ref<BulkDeleteState | null>(null)
+const pendingBulkDeleteIds = ref<string[]>([])
+const deletingBulk = ref(false)
 
 const filtered = computed(() =>
   (query.data.value ?? []).filter((key) => state.value === 'all' || key.state === state.value),
 )
+const expiredKeys = computed(() =>
+  (query.data.value ?? []).filter((key) => key.state === 'expired'),
+)
+const usedKeys = computed(() => (query.data.value ?? []).filter((key) => key.state === 'used'))
 const userOptions = computed(() =>
   (users.data.value ?? []).map((user) => ({ label: user.name, value: user.id })),
 )
@@ -206,16 +214,84 @@ async function confirmAction() {
     notification.error({ title: t('common.failed') })
   }
 }
+
+function openBulkDelete(kind: BulkDeleteState, keys: PreAuthKey[]) {
+  pendingBulkDeleteIds.value = keys.map((key) => key.id)
+  bulkDeleteState.value = pendingBulkDeleteIds.value.length > 0 ? kind : null
+}
+
+function updateBulkDeleteDialog(show: boolean) {
+  if (show) return
+  if (!deletingBulk.value) {
+    pendingBulkDeleteIds.value = []
+    bulkDeleteState.value = null
+  }
+}
+
+async function deleteBulkKeys() {
+  const kind = bulkDeleteState.value
+  const ids = [...pendingBulkDeleteIds.value]
+  if (!kind || !ids.length) return
+  deletingBulk.value = true
+  const failedIds: string[] = []
+  let deletedCount = 0
+  for (const id of ids) {
+    try {
+      await deleteKey.mutateAsync(id)
+      deletedCount += 1
+    } catch {
+      failedIds.push(id)
+    }
+  }
+  await query.refetch()
+  deletingBulk.value = false
+  if (!failedIds.length) {
+    pendingBulkDeleteIds.value = []
+    bulkDeleteState.value = null
+    message.success(t('common.success'))
+    return
+  }
+  pendingBulkDeleteIds.value = failedIds
+  notification.error({
+    title: t('common.failed'),
+    content: t(
+      kind === 'expired'
+        ? 'preAuthKeys.deleteExpiredPartial'
+        : 'preAuthKeys.deleteUsedPartial',
+      { deleted: deletedCount, failed: failedIds.length },
+    ),
+  })
+}
 </script>
 
 <template>
   <section class="admin-page keys-page">
     <PageHeader :title="t('preAuthKeys.title')" :description="t('preAuthKeys.description')">
       <template #actions>
-        <NButton type="primary" :disabled="users.isError.value" @click="creating = true">
-          <template #icon><Plus :size="17" aria-hidden="true" /></template>
-          {{ t('common.create') }}
-        </NButton>
+        <NSpace>
+          <NButton
+            type="error"
+            secondary
+            :disabled="!expiredKeys.length || query.isError.value || deletingBulk"
+            :loading="deletingBulk && bulkDeleteState === 'expired'"
+            @click="openBulkDelete('expired', expiredKeys)"
+          >
+            {{ t('preAuthKeys.deleteExpired', { count: expiredKeys.length }) }}
+          </NButton>
+          <NButton
+            type="error"
+            secondary
+            :disabled="!usedKeys.length || query.isError.value || deletingBulk"
+            :loading="deletingBulk && bulkDeleteState === 'used'"
+            @click="openBulkDelete('used', usedKeys)"
+          >
+            {{ t('preAuthKeys.deleteUsed', { count: usedKeys.length }) }}
+          </NButton>
+          <NButton type="primary" :disabled="users.isError.value" @click="creating = true">
+            <template #icon><Plus :size="17" aria-hidden="true" /></template>
+            {{ t('common.create') }}
+          </NButton>
+        </NSpace>
       </template>
     </PageHeader>
     <PageToolbar>
@@ -313,6 +389,29 @@ async function confirmAction() {
         >
       </div>
     </NModal>
+
+    <ConfirmDialog
+      :show="Boolean(bulkDeleteState)"
+      :title="
+        bulkDeleteState === 'used'
+          ? t('preAuthKeys.deleteUsedTitle')
+          : t('preAuthKeys.deleteExpiredTitle')
+      "
+      :message="
+        bulkDeleteState === 'used'
+          ? t('preAuthKeys.deleteUsedMessage', { count: pendingBulkDeleteIds.length })
+          : t('preAuthKeys.deleteExpiredMessage', { count: pendingBulkDeleteIds.length })
+      "
+      :confirm-label="
+        bulkDeleteState === 'used'
+          ? t('preAuthKeys.deleteUsedAction')
+          : t('preAuthKeys.deleteExpiredAction')
+      "
+      danger
+      :pending="deletingBulk"
+      @update:show="updateBulkDeleteDialog"
+      @confirm="deleteBulkKeys"
+    />
 
     <ConfirmDialog
       :show="Boolean(pendingAction)"

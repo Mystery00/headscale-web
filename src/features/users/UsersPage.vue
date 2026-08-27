@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import {
   NButton,
   NDrawer,
@@ -31,6 +32,7 @@ import {
 } from '@/query/use-headscale-mutations'
 
 const { t } = useI18n()
+const router = useRouter()
 const message = useMessage()
 const notification = useNotification()
 const settings = useSettingsStore()
@@ -62,6 +64,23 @@ const filtered = computed(() => {
     return matchesProvider && (!term || haystack.includes(term))
   })
 })
+const nodeCounts = computed(() => {
+  if (!nodes.data.value) return null
+  const counts = new Map<string, number>()
+  for (const node of nodes.data.value) {
+    counts.set(node.user.id, (counts.get(node.user.id) ?? 0) + 1)
+  }
+  return counts
+})
+
+function nodeCount(userId: string) {
+  return nodeCounts.value?.get(userId) ?? (nodeCounts.value ? 0 : null)
+}
+
+function openUserNodes(user: User) {
+  void router.push({ path: '/nodes', query: { userId: user.id } })
+}
+
 const relatedNodeCount = computed(() =>
   nodes.isSuccess.value && !nodes.isFetching.value
     ? (nodes.data.value?.filter((node) => node.user.id === selected.value?.id).length ?? 0)
@@ -104,6 +123,26 @@ const columns = computed<DataTableColumns<User>>(() => [
     width: 140,
     render: (user) =>
       h(StatusBadge, { label: user.provider || '—', tone: user.provider ? 'info' : 'neutral' }),
+  },
+  {
+    title: t('users.nodeCount'),
+    key: 'nodeCount',
+    width: 130,
+    render: (user) => {
+      const count = nodeCount(user.id)
+      return count === null
+        ? t('common.unavailable')
+        : h(
+            NButton,
+            {
+              text: true,
+              type: 'primary',
+              'aria-label': t('users.viewNodes', { count, name: user.name }),
+              onClick: () => openUserNodes(user),
+            },
+            { default: () => String(count) },
+          )
+    },
   },
   {
     title: t('users.createdAt'),
@@ -204,7 +243,7 @@ async function onDelete() {
       :loading="query.isLoading.value"
       :row-key="(user) => user.id"
       :aria-label="t('users.title')"
-      :scroll-x="820"
+      :scroll-x="950"
     >
       <template #empty>
         <EmptyState :title="query.isError.value ? t('common.error') : t('common.empty')">
