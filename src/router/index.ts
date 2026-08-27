@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type Router } from 'vue-router'
 import ConnectionPage from '@/features/connection/ConnectionPage.vue'
 import DashboardPage from '@/features/dashboard/DashboardPage.vue'
 import NodesPage from '@/features/nodes/NodesPage.vue'
@@ -9,9 +9,9 @@ import SettingsPage from '@/features/settings/SettingsPage.vue'
 import UsersPage from '@/features/users/UsersPage.vue'
 import { requireConnection } from '@/router/guards'
 
-export function createAppRouter() {
+export function createAppRouter(basePath = '/'): Router {
   const router = createRouter({
-    history: createWebHistory(import.meta.env.BASE_URL),
+    history: createWebHistory(basePath),
     routes: [
       { path: '/connect', component: ConnectionPage },
       {

@@ -1,14 +1,21 @@
 import { describe, expect, it } from 'vitest'
-import { normalizeBasePath } from '@/domain/url'
+import { deriveBasePathFromModuleUrl } from '@/domain/url'
+import { createAppRouter } from '@/router'
 
-describe('normalizeBasePath', () => {
-  it('accepts / and /admin/', () => {
-    expect(normalizeBasePath('/')).toBe('/')
-    expect(normalizeBasePath('/admin/')).toBe('/admin/')
+describe('deriveBasePathFromModuleUrl', () => {
+  it.each([
+    ['https://example.com/assets/index.js', '/'],
+    ['https://example.com/admin/assets/index.js', '/admin/'],
+    ['https://example.com/tools/headscale/assets/index.js', '/tools/headscale/'],
+    ['https://example.com/admin/assets/index.js?v=1#entry', '/admin/'],
+  ])('derives the application base from %s', (moduleUrl, expected) => {
+    expect(deriveBasePathFromModuleUrl(moduleUrl)).toBe(expected)
   })
+})
 
-  it('rejects missing slashes', () => {
-    expect(() => normalizeBasePath('admin')).toThrow(/start and end with \//)
-    expect(() => normalizeBasePath('/admin')).toThrow(/start and end with \//)
+describe('createAppRouter', () => {
+  it('uses an injected deployment base', () => {
+    const router = createAppRouter('/admin/')
+    expect(router.options.history.base).toBe('/admin')
   })
 })

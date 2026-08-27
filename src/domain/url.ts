@@ -1,8 +1,5 @@
-export function normalizeBasePath(value: string): string {
-  if (!value.startsWith('/') || !value.endsWith('/')) {
-    throw new Error('VITE_BASE_PATH must start and end with /')
-  }
-  return value
+export function deriveBasePathFromModuleUrl(moduleUrl: string): string {
+  return new URL('../', moduleUrl).pathname
 }
 
 export type HeadscaleUrlError =
