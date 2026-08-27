@@ -125,9 +125,8 @@ Example:
 docker run \
   -e APP_BASE_PATH=/admin/ \
   --read-only \
-  --tmpfs /tmp \
   --tmpfs /var/cache/nginx \
-  --tmpfs /var/run \
+  --tmpfs /var/run:rw,noexec,nosuid,size=16m,mode=1777 \
   -p 8080:8080 \
   headscale-web
 ```
@@ -152,12 +151,12 @@ The immutable build output will be stored in the image under:
 /opt/headscale-web/
 ```
 
-At startup, the non-root entrypoint will create a writable site tree under `/tmp`, placing the build at the configured path.
+At startup, the non-root entrypoint will create a writable site tree under `/var/run`, placing the build at the configured path. For read-only containers, `/var/run` must be mounted as a writable tmpfs accessible to user `101`.
 
 For `/admin/`:
 
 ```text
-/tmp/headscale-web-site/
+/var/run/headscale-web-site/
 └── admin/
     ├── index.html
     ├── assets/
@@ -167,17 +166,17 @@ For `/admin/`:
 For `/`:
 
 ```text
-/tmp/headscale-web-site/
+/var/run/headscale-web-site/
 ├── index.html
 ├── assets/
 └── favicon.svg
 ```
 
-The entrypoint will generate an Nginx configuration under `/tmp` with:
+The entrypoint will generate the Nginx configuration at `/var/run/headscale-web/nginx.conf` with:
 
 - `/healthz` available independently of the application base path.
 - A location restricted to `APP_BASE_PATH`.
-- Static file lookup rooted at `/tmp/headscale-web-site`.
+- Static file lookup rooted at `/var/run/headscale-web-site`.
 - SPA fallback to `${APP_BASE_PATH}index.html`.
 - A 404 response outside the configured application path, except `/healthz`.
 - Existing security headers.
