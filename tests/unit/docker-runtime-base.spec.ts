@@ -114,7 +114,18 @@ describe.runIf(enabled)('Docker runtime base path', () => {
     expect((await fetch(`${origin}/healthz`)).status).toBe(200)
   })
 
-  it.each(['admin/', '/admin', '/admin//', '/./admin/', '/../admin/', '/admin\\x/', '/admin/?x=1', '/admin/#x'])(
+  it.each([
+    'admin/',
+    '/admin',
+    '/admin//',
+    '/./admin/',
+    '/../admin/',
+    '/admin\\x/',
+    '/admin/?x=1',
+    '/admin/#x',
+    '/\n/admin/',
+    '/\r/admin/',
+  ])(
     'rejects invalid APP_BASE_PATH=%s',
     (basePath) => {
       const name = `headscale-web-invalid-${randomUUID()}`

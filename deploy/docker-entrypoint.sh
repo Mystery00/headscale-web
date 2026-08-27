@@ -12,6 +12,10 @@ invalid_base_path() {
   exit 1
 }
 
+case "$base_path" in
+  *[!A-Za-z0-9._~/-]*) invalid_base_path ;;
+esac
+
 if ! printf '%s' "$base_path" | grep -Eq '^/([A-Za-z0-9._~-]+/)*$'; then
   invalid_base_path
 fi
