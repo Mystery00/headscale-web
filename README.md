@@ -29,7 +29,7 @@ HEADSCALE_PROXY_TARGET=https://your-headscale.example.com
 
 Restart `pnpm dev`, then enter the Vite origin (for example `http://localhost:5173`) as the Headscale URL. Vite proxies `/version` and `/api/*` to the configured target. This proxy is development-only.
 
-`VITE_BASE_PATH` must start and end with `/`. Example: `VITE_BASE_PATH=/admin/ pnpm build`.
+The production build is relocatable. The same `dist/` output can be served at `/` or copied into a subdirectory such as `/admin/`. Docker deployments select the path at runtime with `APP_BASE_PATH`. See [docs/deploy.md](docs/deploy.md).
 
 ## License
 

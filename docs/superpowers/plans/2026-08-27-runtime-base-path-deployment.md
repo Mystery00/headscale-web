@@ -518,7 +518,7 @@ Also verify read-only mode manually:
 
 ```powershell
 docker build -t headscale-web:read-only-test .
-docker run --rm --read-only --tmpfs /var/cache/nginx --tmpfs /var/run:rw,noexec,nosuid,size=16m,mode=1777 -e APP_BASE_PATH=/admin/ -p 18080:8080 headscale-web:read-only-test
+docker run --rm --read-only --tmpfs /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777 --tmpfs /var/run:rw,noexec,nosuid,size=16m,mode=1777 -e APP_BASE_PATH=/admin/ -p 18080:8080 headscale-web:read-only-test
 ```
 
 In another terminal:
@@ -647,7 +647,7 @@ headscale.example.com {
 ```bash
 docker build -t headscale-web .
 docker run --read-only \
-  --tmpfs /var/cache/nginx \
+  --tmpfs /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777 \
   --tmpfs /var/run:rw,noexec,nosuid,size=16m,mode=1777 \
   -p 8080:8080 \
   headscale-web
@@ -656,7 +656,7 @@ docker run --read-only \
 ```bash
 docker run --read-only \
   -e APP_BASE_PATH=/admin/ \
-  --tmpfs /var/cache/nginx \
+  --tmpfs /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777 \
   --tmpfs /var/run:rw,noexec,nosuid,size=16m,mode=1777 \
   -p 8080:8080 \
   headscale-web

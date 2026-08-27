@@ -125,7 +125,7 @@ Example:
 docker run \
   -e APP_BASE_PATH=/admin/ \
   --read-only \
-  --tmpfs /var/cache/nginx \
+  --tmpfs /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777 \
   --tmpfs /var/run:rw,noexec,nosuid,size=16m,mode=1777 \
   -p 8080:8080 \
   headscale-web
@@ -151,7 +151,7 @@ The immutable build output will be stored in the image under:
 /opt/headscale-web/
 ```
 
-At startup, the non-root entrypoint will create a writable site tree under `/var/run`, placing the build at the configured path. For read-only containers, `/var/run` must be mounted as a writable tmpfs accessible to user `101`.
+The image pre-creates the dedicated runtime directories under `/var/run` with ownership for user `101`. At startup, the non-root entrypoint prepares the writable site tree and places the build at the configured path. For read-only containers, `/var/run` must be mounted as a writable tmpfs accessible to user `101`.
 
 For `/admin/`:
 
