@@ -2,7 +2,7 @@
 	encode gzip
 	header X-Content-Type-Options nosniff
 	header Referrer-Policy no-referrer
-	header Content-Security-Policy "default-src 'self'; connect-src 'self'; frame-ancestors 'none'"
+	header Content-Security-Policy "default-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'"
 
 	handle /healthz {
 		respond "ok" 200

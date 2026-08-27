@@ -2,7 +2,29 @@
 
 Unofficial community UI. Not affiliated with the Headscale project.
 
-## Build once
+## Download static files
+
+Each GitHub Release provides a ready-to-serve static distribution in both tar.gz and zip formats:
+
+- `headscale-web-static.tar.gz`
+- `headscale-web-static.zip`
+- `SHA256SUMS`
+
+Download and extract the latest release on Linux:
+
+```bash
+curl -LO https://github.com/mystery00/headscale-web/releases/latest/download/headscale-web-static.tar.gz
+curl -LO https://github.com/mystery00/headscale-web/releases/latest/download/SHA256SUMS
+sha256sum --ignore-missing --check SHA256SUMS
+mkdir -p dist
+tar -xzf headscale-web-static.tar.gz -C dist
+```
+
+To deploy a specific version, open its page under [GitHub Releases](https://github.com/mystery00/headscale-web/releases) instead of using the `latest` download URL.
+
+### Build from source
+
+Building locally is optional:
 
 ```bash
 pnpm install --frozen-lockfile
@@ -199,11 +221,14 @@ The UI does not send cookies to Headscale (`credentials` stays `same-origin`).
 
 ## Docker
 
-Build one generic image:
+Prebuilt multi-architecture images for `linux/amd64` and `linux/arm64` are published to:
 
-```bash
-docker build -t headscale-web .
+```text
+ghcr.io/mystery00/headscale-web
+mystery0/headscale-web
 ```
+
+The examples below use Docker Hub; the GHCR image is equivalent. Replace `latest` with a release version such as `0.1.0` for reproducible deployments.
 
 Run it at `/`, which is the default `APP_BASE_PATH`:
 
@@ -212,7 +237,7 @@ docker run --read-only \
   --tmpfs /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777 \
   --tmpfs /var/run:rw,noexec,nosuid,size=16m,mode=1777 \
   -p 8080:8080 \
-  headscale-web
+  mystery0/headscale-web:latest
 ```
 
 Run the same image at `/admin/`:
@@ -223,7 +248,32 @@ docker run --read-only \
   --tmpfs /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777 \
   --tmpfs /var/run:rw,noexec,nosuid,size=16m,mode=1777 \
   -p 8080:8080 \
-  headscale-web
+  mystery0/headscale-web:latest
+```
+
+Docker Compose example:
+
+```yaml
+services:
+  headscale-web:
+    image: mystery0/headscale-web:latest
+    restart: unless-stopped
+    read_only: true
+    environment:
+      APP_BASE_PATH: /admin/
+    tmpfs:
+      - /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777
+      - /var/run:rw,noexec,nosuid,size=16m,mode=1777
+    ports:
+      - "8080:8080"
+```
+
+### Build the container image from source
+
+Building locally is optional:
+
+```bash
+docker build -t headscale-web .
 ```
 
 The container:

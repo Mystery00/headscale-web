@@ -60,7 +60,7 @@ http {
 
         add_header X-Content-Type-Options nosniff always;
         add_header Referrer-Policy no-referrer always;
-        add_header Content-Security-Policy "default-src 'self'; connect-src 'self'; frame-ancestors 'none'" always;
+        add_header Content-Security-Policy "default-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'" always;
 
         location = /healthz {
             default_type text/plain;

@@ -109,6 +109,15 @@ describe.runIf(enabled)('Docker runtime base path', () => {
     expect((await fetch(`${origin}/healthz`)).status).toBe(200)
   })
 
+  it('allows application styles while retaining the restrictive CSP', async () => {
+    const { origin } = await startContainer('/admin/')
+    const response = await expectApplicationAt(origin, '/admin/')
+
+    expect(response.headers.get('content-security-policy')).toBe(
+      "default-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'",
+    )
+  })
+
   it('serves only the configured subpath and its direct routes', async () => {
     const { origin } = await startContainer('/admin/', true)
     await expectApplicationAt(origin, '/admin/')

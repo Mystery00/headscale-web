@@ -46,10 +46,12 @@ jobs:
           images: |
             ghcr.io/mystery00/headscale-web
             mystery0/headscale-web
+          flavor: latest=false
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
+            type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -62,16 +64,11 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  pages:
-    name: Publish GitHub Pages
+  static:
+    name: Build static distribution
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     permissions:
       contents: read
-      pages: write
-      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -92,6 +89,79 @@ jobs:
 
       - name: Build static site
         run: pnpm build
+
+      - name: Package static distribution
+        run: |
+          tar -C dist -czf headscale-web-static.tar.gz .
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZIP_DEFLATED, ZipFile
+
+          root = Path('dist')
+          with ZipFile('headscale-web-static.zip', 'w', ZIP_DEFLATED) as archive:
+              for path in root.rglob('*'):
+                  if path.is_file():
+                      archive.write(path, path.relative_to(root))
+          PY
+          sha256sum headscale-web-static.tar.gz headscale-web-static.zip > SHA256SUMS
+
+      - name: Upload static site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-site
+          path: dist
+          if-no-files-found: error
+
+      - name: Upload release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets
+          path: |
+            headscale-web-static.tar.gz
+            headscale-web-static.zip
+            SHA256SUMS
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    needs: [docker, static]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download release assets
+        uses: actions/download-artifact@v4
+        with:
+          name: release-assets
+          path: release-assets
+
+      - name: Create release and upload static files
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: |
+            release-assets/headscale-web-static.tar.gz
+            release-assets/headscale-web-static.zip
+            release-assets/SHA256SUMS
+
+  pages:
+    name: Publish GitHub Pages
+    needs: static
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Download static site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: static-site
+          path: dist
 
       - name: Prepare GitHub Pages artifact
         run: |
