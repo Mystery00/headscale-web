@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed } from 'vue'
 import { queryKeys } from '@/query/keys'
 import { createAppRepositories } from '@/query/repositories'
+import { credentialStore } from '@/stores/credentials'
 import { useSettingsStore } from '@/stores/settings'
 
 function usePolling() {
@@ -58,6 +59,16 @@ export function useSystemHealthQuery() {
   })
 }
 
+export function useCurrentApiKeyQuery() {
+  return useQuery({
+    queryKey: queryKeys.apiKeyStatus,
+    queryFn: () => {
+      const key = credentialStore.getApiKey()
+      return key ? createAppRepositories().apiKeys.current(key) : null
+    },
+    retry: false,
+  })
+}
 export function useRefreshAll() {
   const queryClient = useQueryClient()
   return () =>

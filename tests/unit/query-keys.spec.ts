@@ -5,6 +5,7 @@ describe('queryKeys', () => {
   it('keeps the spec key shapes', () => {
     expect(queryKeys.systemVersion).toEqual(['system', 'version'])
     expect(queryKeys.systemHealth).toEqual(['system', 'health'])
+    expect(queryKeys.apiKeyStatus).toEqual(['apiKeyStatus'])
     expect(queryKeys.users({ name: 'alice' })).toEqual(['users', { name: 'alice' }])
     expect(queryKeys.users()).toEqual(['users', {}])
     expect(queryKeys.nodes({ userName: 'alice' })).toEqual(['nodes', { userName: 'alice' }])

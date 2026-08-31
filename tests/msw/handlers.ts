@@ -29,6 +29,19 @@ const node = {
 }
 
 export const defaultHandlers = [
+  http.get('http://hs.example.com/api/v1/apikey', () => {
+    return HttpResponse.json({
+      apiKeys: [
+        {
+          id: '7',
+          prefix: 'hskey-api-TESTPREFIX12-***',
+          expiration: '2099-01-01T00:00:00Z',
+          createdAt: '2024-01-01T00:00:00Z',
+          lastSeen: '2024-02-01T00:00:00Z',
+        },
+      ],
+    })
+  }),
   http.get('http://hs.example.com/version', () => {
     return HttpResponse.json({ version: '0.29.3', commit: 'abc' })
   }),

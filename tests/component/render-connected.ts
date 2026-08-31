@@ -10,11 +10,18 @@ import { credentialStore } from '@/stores/credentials'
 import { useSettingsStore } from '@/stores/settings'
 import type { Component } from 'vue'
 
-export async function renderConnected(path: string, page?: Component) {
+export async function renderConnected(
+  path: string,
+  page?: Component,
+  options?: { apiKey?: string },
+) {
   const pinia = createPinia()
   setActivePinia(pinia)
   credentialStore.clear()
-  credentialStore.setApiKey('test-key', 'session')
+  credentialStore.setApiKey(
+    options?.apiKey ?? `hskey-api-TESTPREFIX12-${'x'.repeat(64)}`,
+    'session',
+  )
   useSettingsStore().update({ baseUrl: 'http://hs.example.com' })
   const i18n = createAppI18n('en-US')
   const router = page

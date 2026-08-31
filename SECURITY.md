@@ -33,6 +33,8 @@ The browser must hold the Headscale API key to call Headscale. Consequently:
 
 Headscale Web stores API keys in `sessionStorage` by default. Users may explicitly choose persistent `localStorage`. Disconnecting clears the in-memory credential and both supported browser storage locations.
 
+The Settings page makes a read-only `GET /api/v1/apikey` request to identify the active key by its non-secret prefix and display expiration metadata. It warns when the key expires within 30 days, but it does not create, rotate, expire, revoke, or delete API keys. Administrators must create and retire replacement keys with the Headscale CLI.
+
 ## Deployment recommendations
 
 - Use HTTPS for the UI and Headscale API.

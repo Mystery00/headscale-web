@@ -128,7 +128,13 @@ The connection flow validates:
 
 Without a usable credential, protected routes redirect to `/connect`.
 
+When no Headscale URL has been saved, the connection form is initialized from `window.location.origin`. A saved URL always takes precedence, and the current page path is never included.
+
 The API key is stored in `sessionStorage` by default. A user may explicitly choose `localStorage` after acknowledging the persistence risk. The application does not claim that client-side storage can hide a credential from the browser. Disconnecting clears in-memory, session, and persistent credential locations managed by the application.
+
+Settings uses the read-only `GET /api/v1/apikey` endpoint to match the active credential by its current or legacy non-secret prefix. It displays healthy, expiring-soon, expired, no-expiration, or unavailable status. The expiring-soon boundary includes exactly 30 days. Metadata failures degrade to unavailable without blocking other settings.
+
+The browser application does not create, rotate, expire, revoke, or delete API keys. For expiring and expired keys it presents manual CLI guidance: create a replacement, validate and save it through the existing connection form, then expire the old prefix only after the replacement works.
 
 ## 8. Domain behavior
 

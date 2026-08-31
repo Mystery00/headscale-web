@@ -6,4 +6,5 @@ export const queryKeys = {
   nodes: (filters?: { userName?: string }) => ['nodes', filters ?? {}] as const,
   node: (nodeId: string) => ['node', nodeId] as const,
   preAuthKeys: ['preAuthKeys'] as const,
+  apiKeyStatus: ['apiKeyStatus'] as const,
 }

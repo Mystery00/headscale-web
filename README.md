@@ -37,6 +37,8 @@ Try the latest released build without installing anything:
 - English and Simplified Chinese interface
 - Light, dark, and system themes
 - Configurable refresh polling
+- Headscale URL pre-filled from the browser origin when no URL has been saved
+- Read-only API key expiration status with a 30-day warning and manual replacement guidance
 - Deployable as static files or a multi-architecture Docker image
 - Runtime Docker deployment at `/` or a subpath such as `/admin/`
 
@@ -66,7 +68,7 @@ docker run -d \
   mystery0/headscale-web:0.1.2
 ```
 
-Open `http://localhost:8080`, then enter your Headscale URL and API key. For this independent-origin example, Headscale or its reverse proxy must allow CORS requests from `http://localhost:8080`. For production, the same-origin reverse-proxy layout described below is recommended.
+Open `http://localhost:8080`, then enter your Headscale URL and API key. When no URL has been saved, the connection form starts with the current browser origin; replace it for an independent-origin deployment. For this independent-origin example, Headscale or its reverse proxy must allow CORS requests from `http://localhost:8080`. For production, the same-origin reverse-proxy layout described below is recommended.
 
 The container listens on port `8080`, runs as a non-root user, and exposes a health endpoint at `/healthz`.
 
@@ -80,6 +82,8 @@ Headscale Web runs entirely in the browser. The browser must therefore hold the 
 - Persistent storage in `localStorage` requires an explicit user choice.
 - Production deployments should use HTTPS.
 - Same-origin deployment is recommended where practical.
+- Settings reads API key metadata to show expiration status; it never creates, expires, revokes, or deletes API keys.
+- Keys expiring within 30 days require manual replacement with the Headscale CLI.
 - Access controls such as Authelia, Authentik, OAuth2 Proxy, or Cloudflare Access can restrict who opens the UI, but they do not replace the Headscale API key.
 
 Read [`SECURITY.md`](SECURITY.md) before exposing the application outside a trusted network.

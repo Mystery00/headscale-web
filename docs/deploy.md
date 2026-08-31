@@ -110,6 +110,8 @@ https://headscale.example.com/version -> Headscale
 
 The API and `/version` locations must be handled before the UI fallback. Do not allow them to reach SPA route handling.
 
+In this layout the connection form automatically starts with the browser origin when no URL has been saved. The API key status panel also requires `GET /api/v1/apikey` to be routed to Headscale.
+
 ### Nginx
 
 ```nginx
@@ -171,6 +173,8 @@ Vary: Origin
 ```
 
 Answer OPTIONS preflight requests. Allow only the exact UI origin; do not use `*`. The UI does not send cookies to Headscale (`credentials` remains `same-origin`). Configure `connect-src` with the exact Headscale origin instead of `connect-src *`.
+
+Because the browser origin is the UI origin in this model, replace the pre-filled URL with the independent Headscale origin before connecting. The CORS policy must permit the read-only `GET /api/v1/apikey` status request in addition to the existing API operations.
 
 ## Build from source
 

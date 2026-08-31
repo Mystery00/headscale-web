@@ -64,6 +64,13 @@ describe('ConnectionPage', () => {
     expect(screen.getByText('dev')).toBeTruthy()
   })
 
+  it('defaults the Headscale URL to the current page origin', async () => {
+    await renderPage()
+    expect((screen.getByLabelText('Headscale URL') as HTMLInputElement).value).toBe(
+      window.location.origin,
+    )
+  })
+
   it('presents the connection checks as a labelled status region', async () => {
     await renderPage()
     expect(screen.getByRole('region', { name: 'Connection checks' })).toBeTruthy()

@@ -186,8 +186,7 @@ export const enUS = {
     deleteExpired: 'Delete expired ({count})',
     deleteExpiredAction: 'Delete expired',
     deleteExpiredTitle: 'Delete expired PreAuth Keys',
-    deleteExpiredMessage:
-      'Delete all {count} expired PreAuth Keys? This action cannot be undone.',
+    deleteExpiredMessage: 'Delete all {count} expired PreAuth Keys? This action cannot be undone.',
     deleteExpiredPartial: 'Deleted {deleted} expired keys; {failed} failed.',
     deleteUsed: 'Delete used ({count})',
     deleteUsedAction: 'Delete used',
@@ -252,5 +251,31 @@ export const enUS = {
     absolute: 'Absolute',
     relative: 'Relative',
     test: 'Test connection',
+    apiKeyStatus: {
+      title: 'API key status',
+      hint: 'Review the expiration of the credential used by this browser.',
+      loading: 'Loading API key status...',
+      unavailable: 'Status unavailable',
+      prefix: 'Prefix',
+      expiration: 'Expiration',
+      state: 'Status',
+      states: {
+        healthy: 'Healthy',
+        'expiring-soon': 'Expiring soon',
+        expired: 'Expired',
+        'no-expiration': 'No expiration',
+      },
+      replace: 'Replace API key',
+      replaceHint:
+        'Replace the key manually so the browser never receives permission to create or revoke credentials.',
+      steps: {
+        create: 'Create a new 90-day key on the Headscale server.',
+        test: 'Paste it above and test the connection.',
+        save: 'Save after the new key is verified.',
+        expire: 'Revoke the old key only after the replacement works.',
+      },
+      oneTimeWarning:
+        'Headscale displays a newly created API key only once. Save it before leaving the terminal.',
+    },
   },
 }

@@ -17,6 +17,7 @@ import {
 import { AppApiError } from '@/api/errors'
 import { createHeadscaleHttp } from '@/api/http'
 import { appVersion } from '@/config/app'
+import { initialHeadscaleUrl } from '@/domain/connection-defaults'
 import type { CredentialPersistence } from '@/domain/credentials'
 import { parseConnectionForm } from '@/features/connection/connection-schema'
 import { createSystemRepository } from '@/repositories/system-repository'
@@ -31,7 +32,7 @@ const router = useRouter()
 const settings = useSettingsStore()
 const brandIconSrc = `${import.meta.env.BASE_URL}favicon.svg`
 
-const baseUrl = ref(settings.baseUrl ?? '')
+const baseUrl = ref(initialHeadscaleUrl(settings.baseUrl, window.location.origin))
 const apiKey = ref('')
 const showKey = ref(false)
 const persistence = ref<CredentialPersistence>('session')
