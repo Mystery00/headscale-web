@@ -1,41 +1,91 @@
 # Deploying Headscale Web
 
-Unofficial community UI. Not affiliated with the Headscale project.
+Headscale Web is an unofficial community UI and is not affiliated with or endorsed by the Headscale project.
 
-## Download static files
+## Before you deploy
 
-Each GitHub Release provides a ready-to-serve static distribution in both tar.gz and zip formats:
+- The current release line supports Headscale `0.29.x` and uses the `v0.29.3` API schema as its contract baseline.
+- Use HTTPS for production deployments.
+- Prefer same-origin deployment so that the UI and Headscale API share an origin and do not require CORS.
+- Treat the Headscale API key as an administrative secret. Do not include it in URLs, images, logs, support requests, or public issue reports.
+- Use a versioned release or image tag for reproducible deployments. `latest` is convenient for evaluation but is not an upgrade policy.
+
+## Docker
+
+Images for `linux/amd64` and `linux/arm64` are published to:
+
+```text
+ghcr.io/mystery00/headscale-web
+mystery0/headscale-web
+```
+
+Run the UI at `/`:
+
+```bash
+docker run -d \
+  --name headscale-web \
+  --restart unless-stopped \
+  --read-only \
+  --tmpfs /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777 \
+  --tmpfs /var/run:rw,noexec,nosuid,size=16m,mode=1777 \
+  -p 8080:8080 \
+  mystery0/headscale-web:0.1.2
+```
+
+Run it at `/admin/`:
+
+```bash
+docker run -d \
+  --name headscale-web \
+  --restart unless-stopped \
+  --read-only \
+  -e APP_BASE_PATH=/admin/ \
+  --tmpfs /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777 \
+  --tmpfs /var/run:rw,noexec,nosuid,size=16m,mode=1777 \
+  -p 8080:8080 \
+  mystery0/headscale-web:0.1.2
+```
+
+The container listens on port `8080`, runs as non-root user `101`, and exposes `/healthz` independently of the application base path. Both tmpfs mounts must be writable because Nginx creates runtime files at startup.
+
+### Docker Compose
+
+```yaml
+services:
+  headscale-web:
+    image: mystery0/headscale-web:0.1.2
+    restart: unless-stopped
+    read_only: true
+    environment:
+      APP_BASE_PATH: /admin/
+    tmpfs:
+      - /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777
+      - /var/run:rw,noexec,nosuid,size=16m,mode=1777
+    ports:
+      - "8080:8080"
+```
+
+## Static release files
+
+Each [GitHub Release](https://github.com/Mystery00/headscale-web/releases) provides a ready-to-serve build:
 
 - `headscale-web-static.tar.gz`
 - `headscale-web-static.zip`
 - `SHA256SUMS`
 
-Download and extract the latest release on Linux:
+Download and verify the latest archive on Linux:
 
 ```bash
-curl -LO https://github.com/mystery00/headscale-web/releases/latest/download/headscale-web-static.tar.gz
-curl -LO https://github.com/mystery00/headscale-web/releases/latest/download/SHA256SUMS
+curl -LO https://github.com/Mystery00/headscale-web/releases/latest/download/headscale-web-static.tar.gz
+curl -LO https://github.com/Mystery00/headscale-web/releases/latest/download/SHA256SUMS
 sha256sum --ignore-missing --check SHA256SUMS
 mkdir -p dist
 tar -xzf headscale-web-static.tar.gz -C dist
 ```
 
-To deploy a specific version, open its page under [GitHub Releases](https://github.com/mystery00/headscale-web/releases) instead of using the `latest` download URL.
+For a specific version, download the assets from that release page rather than using `latest` URLs.
 
-### Build from source
-
-Building locally is optional:
-
-```bash
-pnpm install --frozen-lockfile
-pnpm build
-```
-
-The production build is relocatable. The same `dist/` contents can be served at `/`, `/admin/`, or a deeper same-origin path without rebuilding. No base-path build variable is required.
-
-The public URL and the directory containing `index.html` must match.
-
-The application uses these single-segment client routes:
+The unchanged `dist/` directory can be served at `/`, `/admin/`, or another valid subpath. The public URL and the directory containing `index.html` must match. The supported client routes are:
 
 ```text
 /connect
@@ -46,79 +96,21 @@ The application uses these single-segment client routes:
 /settings
 ```
 
-Client routes use no trailing slash. Static servers should redirect a trailing-slash form such as `/nodes/` to `/nodes`, return `index.html` for the listed routes, serve real static files normally, and return 404 for unsupported multi-segment paths. This prevents relative assets from being resolved below a client route.
+Redirect trailing-slash forms to the canonical route, return `index.html` for supported client routes, serve real static files normally, and return 404 for unsupported paths.
 
-## Static files at `/`
+## Same-origin reverse proxy (recommended)
 
-Copy the contents of `dist/` directly into the configured web root:
-
-```text
-/srv/headscale-web/
-|-- index.html
-|-- assets/
-`-- favicon.svg
-```
-
-Public URL:
+Use this routing model:
 
 ```text
-https://admin.example.com/
-```
-
-### Root Nginx example
-
-```nginx
-server {
-    listen 8080;
-    root /srv/headscale-web;
-
-    location ~ ^/(connect|users|nodes|routes|preauth-keys|settings)/$ {
-        return 308 /$1;
-    }
-
-    location ~ ^/(connect|users|nodes|routes|preauth-keys|settings)$ {
-        try_files /index.html =404;
-    }
-
-    location = / {
-        try_files /index.html =404;
-    }
-
-    location / {
-        try_files $uri =404;
-    }
-}
-```
-
-The checked-in `Caddyfile` provides the equivalent root deployment example.
-
-## Static files at `/admin/`
-
-Copy the unchanged `dist/` contents into `/srv/www/admin/`:
-
-```text
-/srv/www/
-`-- admin/
-    |-- index.html
-    |-- assets/
-    `-- favicon.svg
-```
-
-Public URL:
-
-```text
-https://headscale.example.com/admin/
-```
-
-## Same-origin Nginx example
-
-```text
-https://headscale.example.com/admin/* -> this UI
+https://headscale.example.com/admin/* -> Headscale Web
 https://headscale.example.com/api/*   -> Headscale
 https://headscale.example.com/version -> Headscale
 ```
 
-Proxy Headscale before handling UI files:
+The API and `/version` locations must be handled before the UI fallback. Do not allow them to reach SPA route handling.
+
+### Nginx
 
 ```nginx
 server {
@@ -156,57 +148,20 @@ server {
 }
 ```
 
-Keep your existing Headscale WebSocket, TLS, and proxy-header settings. Do not allow `/api/*` or `/version` to reach UI route handling.
+Keep the WebSocket, TLS, and proxy-header settings required by your Headscale deployment.
 
-## Same-origin Caddy example
+### Caddy
 
-```caddyfile
-headscale.example.com {
-    handle /api/* {
-        reverse_proxy headscale:8080
-    }
-
-    handle /version {
-        reverse_proxy headscale:8080
-    }
-
-    redir /admin /admin/ 308
-    redir /admin/connect/ /admin/connect 308
-    redir /admin/users/ /admin/users 308
-    redir /admin/nodes/ /admin/nodes 308
-    redir /admin/routes/ /admin/routes 308
-    redir /admin/preauth-keys/ /admin/preauth-keys 308
-    redir /admin/settings/ /admin/settings 308
-
-    @admin_routes path /admin/ /admin/connect /admin/users /admin/nodes /admin/routes /admin/preauth-keys /admin/settings
-    handle @admin_routes {
-        root * /srv/www
-        rewrite * /admin/index.html
-        file_server
-    }
-
-    handle /admin/assets/* {
-        root * /srv/www
-        file_server
-    }
-
-    handle /admin/favicon.svg {
-        root * /srv/www
-        file_server
-    }
-
-    respond 404
-}
-```
+The checked-in [`Caddyfile`](../Caddyfile) contains the maintained root deployment example. For a subpath, proxy `/api/*` and `/version` first, then serve `/admin/index.html` for the supported UI routes and static assets. Preserve the TLS, headers, and WebSocket behavior required by your existing Headscale configuration.
 
 ## Independent origin
 
 ```text
-https://admin.example.com     -> this UI
+https://admin.example.com     -> Headscale Web
 https://headscale.example.com -> Headscale
 ```
 
-Headscale or its reverse proxy must answer CORS for the admin origin on both `/version` and `/api/v1/*`:
+Headscale or its reverse proxy must answer CORS for the UI origin on both `/version` and `/api/v1/*`:
 
 ```http
 Access-Control-Allow-Origin: https://admin.example.com
@@ -215,82 +170,18 @@ Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
 Vary: Origin
 ```
 
-Answer OPTIONS preflight. Do not use `*`. Do not recommend `connect-src *`. Add the Headscale origin to CSP `connect-src` explicitly.
+Answer OPTIONS preflight requests. Allow only the exact UI origin; do not use `*`. The UI does not send cookies to Headscale (`credentials` remains `same-origin`). Configure `connect-src` with the exact Headscale origin instead of `connect-src *`.
 
-The UI does not send cookies to Headscale (`credentials` stays `same-origin`).
-
-## Docker
-
-Prebuilt multi-architecture images for `linux/amd64` and `linux/arm64` are published to:
-
-```text
-ghcr.io/mystery00/headscale-web
-mystery0/headscale-web
-```
-
-The examples below use Docker Hub; the GHCR image is equivalent. Replace `latest` with a release version such as `0.1.0` for reproducible deployments.
-
-Run it at `/`, which is the default `APP_BASE_PATH`:
+## Build from source
 
 ```bash
-docker run --read-only \
-  --tmpfs /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777 \
-  --tmpfs /var/run:rw,noexec,nosuid,size=16m,mode=1777 \
-  -p 8080:8080 \
-  mystery0/headscale-web:latest
-```
-
-Run the same image at `/admin/`:
-
-```bash
-docker run --read-only \
-  -e APP_BASE_PATH=/admin/ \
-  --tmpfs /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777 \
-  --tmpfs /var/run:rw,noexec,nosuid,size=16m,mode=1777 \
-  -p 8080:8080 \
-  mystery0/headscale-web:latest
-```
-
-Docker Compose example:
-
-```yaml
-services:
-  headscale-web:
-    image: mystery0/headscale-web:latest
-    restart: unless-stopped
-    read_only: true
-    environment:
-      APP_BASE_PATH: /admin/
-    tmpfs:
-      - /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777
-      - /var/run:rw,noexec,nosuid,size=16m,mode=1777
-    ports:
-      - "8080:8080"
-```
-
-### Build the container image from source
-
-Building locally is optional:
-
-```bash
+pnpm install --frozen-lockfile
+pnpm build
 docker build -t headscale-web .
 ```
 
-The container:
-
-- Runs as non-root user `101`.
-- Listens on port `8080`.
-- Exposes `/healthz` independently of the application base path.
-- Stores immutable build output under `/opt/headscale-web/`.
-- Creates the runtime site under `/var/run/headscale-web-site/`.
-- Generates Nginx configuration at `/var/run/headscale-web/nginx.conf`.
-- Redirects trailing-slash forms of supported client routes to their canonical URLs.
-- Returns 404 for unsupported multi-segment paths and outside the configured subpath, except for `/healthz`.
-
-`APP_BASE_PATH` defaults to `/`. It must start and end with `/` and must not contain empty segments (`//`), `.` or `..` segments, backslashes, query strings, fragments, whitespace, control characters, or configuration syntax. The container exits before starting Nginx when the value is invalid.
-
-Both tmpfs mounts need a writable mode because the container process runs as user `101`.
+The Docker image accepts `APP_BASE_PATH` at runtime. It must start and end with `/`, and must not contain empty, `.` or `..` segments, backslashes, query strings, fragments, whitespace, control characters, or configuration syntax.
 
 ## Optional access control
 
-Authelia, Authentik, OAuth2 Proxy, or Cloudflare Access can restrict who opens the page. They do not replace the Headscale API key.
+Authelia, Authentik, OAuth2 Proxy, and Cloudflare Access can restrict access to the UI. They do not replace the Headscale API key and do not change the browser-based security model. Read [`SECURITY.md`](../SECURITY.md) before deploying the UI on a public network.
