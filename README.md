@@ -55,7 +55,7 @@ Project-maintained images are published for `linux/amd64` and `linux/arm64` on:
 - `ghcr.io/mystery00/headscale-web`
 - `mystery0/headscale-web`
 
-For reproducible deployments, use a versioned image tag. The current latest release is `0.1.2`:
+For reproducible deployments, use a versioned image tag. The current latest release is `0.1.3`:
 
 ```bash
 docker run -d \
@@ -65,7 +65,7 @@ docker run -d \
   --tmpfs /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777 \
   --tmpfs /var/run:rw,noexec,nosuid,size=16m,mode=1777 \
   -p 8080:8080 \
-  mystery0/headscale-web:0.1.2
+  mystery0/headscale-web:0.1.3
 ```
 
 Open `http://localhost:8080`, then enter your Headscale URL and API key. When no URL has been saved, the connection form starts with the current browser origin; replace it for an independent-origin deployment. For this independent-origin example, Headscale or its reverse proxy must allow CORS requests from `http://localhost:8080`. For production, the same-origin reverse-proxy layout described below is recommended.

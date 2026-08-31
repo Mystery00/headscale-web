@@ -29,7 +29,7 @@ docker run -d \
   --tmpfs /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777 \
   --tmpfs /var/run:rw,noexec,nosuid,size=16m,mode=1777 \
   -p 8080:8080 \
-  mystery0/headscale-web:0.1.2
+  mystery0/headscale-web:0.1.3
 ```
 
 Run it at `/admin/`:
@@ -43,7 +43,7 @@ docker run -d \
   --tmpfs /var/cache/nginx:rw,noexec,nosuid,size=16m,mode=1777 \
   --tmpfs /var/run:rw,noexec,nosuid,size=16m,mode=1777 \
   -p 8080:8080 \
-  mystery0/headscale-web:0.1.2
+  mystery0/headscale-web:0.1.3
 ```
 
 The container listens on port `8080`, runs as non-root user `101`, and exposes `/healthz` independently of the application base path. Both tmpfs mounts must be writable because Nginx creates runtime files at startup.
@@ -53,7 +53,7 @@ The container listens on port `8080`, runs as non-root user `101`, and exposes `
 ```yaml
 services:
   headscale-web:
-    image: mystery0/headscale-web:0.1.2
+    image: mystery0/headscale-web:0.1.3
     restart: unless-stopped
     read_only: true
     environment:
