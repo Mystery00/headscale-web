@@ -17,9 +17,9 @@ Try the latest released build without installing anything:
 
 ![Headscale Web dashboard showing server health and network summaries](docs/images/dashboard.png)
 
-| Users                                          | Nodes                                          |
-| ---------------------------------------------- | ---------------------------------------------- |
-| ![User management page](docs/images/users.png) | ![Node management page](docs/images/nodes.png) |
+| Users                                          | Nodes                                                    |
+| ---------------------------------------------- | -------------------------------------------------------- |
+| ![User management page](docs/images/users.png) | ![Node management page](docs/images/node-management.png) |
 
 | Routes                                                            | Pre-authentication keys                                                 |
 | ----------------------------------------------------------------- | ----------------------------------------------------------------------- |

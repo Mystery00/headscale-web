@@ -4,7 +4,7 @@ The public README gallery uses these sanitized screenshots:
 
 - `dashboard.png`
 - `users.png`
-- `nodes.png`
+- `node-management.png`
 - `routes.png`
 - `preauth-keys.png`
 - `settings.png`
