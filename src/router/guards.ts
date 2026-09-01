@@ -7,7 +7,7 @@ export const requireConnection: NavigationGuardWithThis<undefined> = (to) => {
   credentialStore.hydrate()
   const settings = useSettingsStore()
   if (!credentialStore.getApiKey() || !settings.baseUrl) {
-    return '/connect'
+    return { path: '/connect', query: { redirect: to.fullPath } }
   }
   return true
 }

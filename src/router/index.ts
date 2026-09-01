@@ -5,6 +5,7 @@ import NodesPage from '@/features/nodes/NodesPage.vue'
 import PreAuthKeysPage from '@/features/preauth-keys/PreAuthKeysPage.vue'
 import RoutesPage from '@/features/routes/RoutesPage.vue'
 import AppShell from '@/features/shell/AppShell.vue'
+import AuthRequestPage from '@/features/auth/AuthRequestPage.vue'
 import SettingsPage from '@/features/settings/SettingsPage.vue'
 import UsersPage from '@/features/users/UsersPage.vue'
 import { requireConnection } from '@/router/guards'
@@ -14,6 +15,8 @@ export function createAppRouter(basePath = '/'): Router {
     history: createWebHistory(basePath),
     routes: [
       { path: '/connect', component: ConnectionPage },
+      { path: '/register', component: AuthRequestPage, props: { mode: 'register' } },
+      { path: '/auth', component: AuthRequestPage, props: { mode: 'reauth' } },
       {
         path: '/',
         component: AppShell,

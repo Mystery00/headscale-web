@@ -34,6 +34,7 @@ Try the latest released build without installing anything:
 - Node inspection, renaming, expiry management, tags, and deletion
 - Advertised and approved route management, including exit routes
 - Pre-authentication key creation, expiry, and deletion
+- Front-proxy-assisted new-node registration and existing-node re-authentication approval
 - English and Simplified Chinese interface
 - Light, dark, and system themes
 - Configurable refresh polling

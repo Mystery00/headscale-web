@@ -29,6 +29,9 @@ const node = {
 }
 
 export const defaultHandlers = [
+  http.post('http://hs.example.com/api/v1/auth/register', () => HttpResponse.json({ node })),
+  http.post('http://hs.example.com/api/v1/auth/approve', () => HttpResponse.json({})),
+  http.post('http://hs.example.com/api/v1/auth/reject', () => HttpResponse.json({})),
   http.get('http://hs.example.com/api/v1/apikey', () => {
     return HttpResponse.json({
       apiKeys: [

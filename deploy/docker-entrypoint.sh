@@ -68,7 +68,7 @@ http {
         }
 NGINX_HEADER
 
-for route in connect users nodes routes preauth-keys settings; do
+for route in connect users nodes routes preauth-keys settings register auth; do
   route_path=${base_path}${route}
   route_with_trailing_slash=${route_path}/
   cat >> "$config_file" <<NGINX_ROUTE

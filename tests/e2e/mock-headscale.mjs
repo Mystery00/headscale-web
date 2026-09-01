@@ -6,6 +6,7 @@ const state = {
   failAuth: false,
   users: [{ id: '1', name: 'alice', createdAt: '2024-01-02T03:04:05Z' }],
   nodes: [],
+  authRequests: ['hskey-authreq-abcdefghijklmnopqrstuvwx'],
 }
 
 function json(res, status, body) {
@@ -63,6 +64,44 @@ const server = createServer(async (req, res) => {
     }
     state.users.push(user)
     json(res, 200, { user })
+    return
+  }
+  if (req.method === 'POST' && url.pathname === '/api/v1/auth/register') {
+    const chunks = []
+    for await (const chunk of req) chunks.push(chunk)
+    const body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
+    if (!(state.authRequests || []).includes(body.authId))
+      return json(res, 404, { message: 'not found' })
+    const user = state.users.find((candidate) => candidate.name === body.user)
+    if (!user) return json(res, 400, { message: 'user not found' })
+    const node = {
+      id: String(state.nodes.length + 100),
+      name: 'registered-laptop',
+      givenName: 'registered-laptop',
+      ipAddresses: ['100.64.0.99'],
+      user,
+      createdAt: new Date().toISOString(),
+      registerMethod: 'REGISTER_METHOD_CLI',
+      online: true,
+      tags: [],
+      approvedRoutes: [],
+      availableRoutes: [],
+      subnetRoutes: [],
+    }
+    state.nodes.push(node)
+    json(res, 200, { node })
+    return
+  }
+  if (
+    req.method === 'POST' &&
+    (url.pathname === '/api/v1/auth/approve' || url.pathname === '/api/v1/auth/reject')
+  ) {
+    const chunks = []
+    for await (const chunk of req) chunks.push(chunk)
+    const body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
+    if (!(state.authRequests || []).includes(body.authId))
+      return json(res, 404, { message: 'not found' })
+    json(res, 200, {})
     return
   }
   if (req.method === 'GET' && url.pathname === '/api/v1/node') {

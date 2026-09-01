@@ -159,6 +159,10 @@ Headscale `0.29.x` does not expose a separate route-list resource for this UI. R
 
 Route updates send the complete new approved-route set for a node, not an incremental fragment. This avoids accidentally replacing unrelated approved routes.
 
+### Node authentication approval
+
+The flat `/register?authId=...` and `/auth?authId=...` routes complete short-lived Headscale authentication requests through the authenticated `/api/v1/auth/*` endpoints. A front proxy redirects Headscale's nested URLs to these SPA routes. Auth IDs are validated, masked, kept out of storage, and removed from the URL after a terminal action.
+
 ### Pre-authentication keys
 
 Pre-authentication keys can be listed, created, expired, and deleted. A newly created full key is held only in the success dialog's local memory and is removed when that flow closes. It must not be written to Pinia, Vue Query cache, browser settings, or logs.

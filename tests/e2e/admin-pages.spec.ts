@@ -13,6 +13,7 @@ async function resetMock() {
         { id: '1', name: 'alice', createdAt: '2024-01-02T03:04:05Z' },
         { id: '2', name: 'platform', createdAt: '2024-02-03T04:05:06Z' },
       ],
+      authRequests: ['hskey-authreq-abcdefghijklmnopqrstuvwx'],
       nodes: [
         {
           id: '42',
@@ -105,4 +106,29 @@ test('keeps every authenticated page contained at mobile width', async ({ page }
       expect(drawerBounds!.width).toBeLessThanOrEqual(390)
     }
   }
+})
+
+test('returns from connection and approves a re-authentication request', async ({ page }) => {
+  const authId = 'hskey-authreq-abcdefghijklmnopqrstuvwx'
+  await page.goto('/auth?authId=' + authId)
+  await expect(page).toHaveURL(/\/connect\?redirect=/)
+  await page.getByLabel('Headscale URL').fill(headscale)
+  await page.getByRole('textbox', { name: 'API Key' }).fill('good-key')
+  await page.getByRole('button', { name: 'Connect' }).click()
+  await expect(page).toHaveURL(new RegExp('/auth\\?authId=' + authId + '$'))
+  await page.getByRole('button', { name: 'Approve re-authentication' }).click()
+  await page.getByRole('button', { name: 'Confirm approval' }).click()
+  await expect(page).toHaveURL(/\/auth\?result=approved$/)
+})
+
+test('registers a new node under a selected user', async ({ page }) => {
+  const authId = 'hskey-authreq-abcdefghijklmnopqrstuvwx'
+  await connect(page)
+  await page.goto('/register?authId=' + authId)
+  await page.locator('.n-base-selection-label').click()
+  await page.getByText('alice', { exact: true }).last().click()
+  await page.getByRole('button', { name: 'Approve and register' }).click()
+  await page.getByRole('button', { name: 'Confirm registration' }).click()
+  await expect(page).toHaveURL(/\/register\?result=registered$/)
+  await expect(page.getByText('registered-laptop')).toBeVisible()
 })

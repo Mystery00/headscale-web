@@ -19,7 +19,9 @@ const router = createAppRouter(deriveBasePathFromModuleUrl(import.meta.url))
 const queryClient = createAppQueryClient({
   onUnauthorized() {
     queryClient.clear()
-    void router.push('/connect')
+    const current = router.currentRoute.value
+    const redirect = current.path === '/connect' ? '/' : current.fullPath
+    void router.push({ path: '/connect', query: { redirect } })
   },
 })
 const app = createApp(App)

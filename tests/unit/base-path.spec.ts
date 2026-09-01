@@ -17,5 +17,7 @@ describe('createAppRouter', () => {
   it('uses an injected deployment base', () => {
     const router = createAppRouter('/admin/')
     expect(router.options.history.base).toBe('/admin')
+    expect(router.resolve('/register?authId=x').href).toBe('/admin/register?authId=x')
+    expect(router.resolve('/auth?authId=x').href).toBe('/admin/auth?authId=x')
   })
 })

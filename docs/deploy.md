@@ -189,3 +189,23 @@ The Docker image accepts `APP_BASE_PATH` at runtime. It must start and end with 
 ## Optional access control
 
 Authelia, Authentik, OAuth2 Proxy, and Cloudflare Access can restrict access to the UI. They do not replace the Headscale API key and do not change the browser-based security model. Read [`SECURITY.md`](../SECURITY.md) before deploying the UI on a public network.
+
+## Node authentication approval
+
+When a node joins without a pre-authentication key, Headscale displays a URL such as `/register/<auth-id>`. A front reverse proxy can temporarily redirect that URL to the SPA's flat route:
+
+```nginx
+location ~ ^/register/(hskey-authreq-[A-Za-z0-9_-]{24})$ {
+    add_header Cache-Control "no-store" always;
+    return 302 /admin/register?authId=$1;
+}
+
+location ~ ^/auth/(hskey-authreq-[A-Za-z0-9_-]{24})$ {
+    add_header Cache-Control "no-store" always;
+    return 302 /admin/auth?authId=$1;
+}
+```
+
+Replace `/admin/` with the configured `APP_BASE_PATH`; for a root deployment use `/register` and `/auth`. Continue proxying `/api/*`, `/version`, and Headscale control/Noise/WebSocket paths to Headscale. Use `302`, not `301` or `308`, because Auth IDs are short-lived. Do not intercept `/register/confirm/*` or `/oidc/callback`, and do not enable this manual flow when Headscale OIDC is configured. Pending Auth IDs normally expire after about 15 minutes and are lost when Headscale restarts.
+
+After the redirect, Headscale Web asks for the target user and calls the authenticated Headscale 0.29.x API. The browser must have a valid administrative API key. The UI also supports `/auth?authId=<id>` for approving or rejecting existing-node re-authentication requests.

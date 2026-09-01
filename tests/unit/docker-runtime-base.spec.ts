@@ -141,17 +141,14 @@ describe.runIf(enabled)('Docker runtime base path', () => {
     '/admin/#x',
     '/\n/admin/',
     '/\r/admin/',
-  ])(
-    'rejects invalid APP_BASE_PATH=%s',
-    (basePath) => {
-      const name = `headscale-web-invalid-${randomUUID()}`
-      const result = spawnDocker(
-        ['run', '--name', name, '-e', `APP_BASE_PATH=${basePath}`, image],
-        5_000,
-      )
-      spawnDocker(['rm', '-f', name])
-      expect(result.status).not.toBe(0)
-      expect(`${result.stdout}${result.stderr}`).toContain('Invalid APP_BASE_PATH')
-    },
-  )
+  ])('rejects invalid APP_BASE_PATH=%s', (basePath) => {
+    const name = `headscale-web-invalid-${randomUUID()}`
+    const result = spawnDocker(
+      ['run', '--name', name, '-e', `APP_BASE_PATH=${basePath}`, image],
+      5_000,
+    )
+    spawnDocker(['rm', '-f', name])
+    expect(result.status).not.toBe(0)
+    expect(`${result.stdout}${result.stderr}`).toContain('Invalid APP_BASE_PATH')
+  })
 })

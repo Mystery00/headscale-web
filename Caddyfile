@@ -1,4 +1,4 @@
-:8080 {
+﻿:8080 {
 	encode gzip
 	header X-Content-Type-Options nosniff
 	header Referrer-Policy no-referrer
@@ -14,8 +14,10 @@
 	redir /routes/ /routes 308
 	redir /preauth-keys/ /preauth-keys 308
 	redir /settings/ /settings 308
+	redir /register/ /register 308
+	redir /auth/ /auth 308
 
-	@app_routes path / /connect /users /nodes /routes /preauth-keys /settings
+	@app_routes path / /connect /users /nodes /routes /preauth-keys /settings /register /auth
 	handle @app_routes {
 		root * /srv/headscale-web
 		rewrite * /index.html
@@ -34,3 +36,4 @@
 
 	respond 404
 }
+

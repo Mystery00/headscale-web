@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { NAlert, NButton, NCheckbox, NInput, NRadio } from 'naive-ui'
 import {
   CheckCircle2,
@@ -19,6 +19,7 @@ import { createHeadscaleHttp } from '@/api/http'
 import { appVersion } from '@/config/app'
 import { initialHeadscaleUrl } from '@/domain/connection-defaults'
 import type { CredentialPersistence } from '@/domain/credentials'
+import { safeInternalRedirect } from '@/domain/internal-redirect'
 import { parseConnectionForm } from '@/features/connection/connection-schema'
 import { createSystemRepository } from '@/repositories/system-repository'
 import { credentialStore } from '@/stores/credentials'
@@ -28,6 +29,7 @@ type StepName = 'network' | 'version' | 'database' | 'authorization'
 type StepState = 'idle' | 'running' | 'ok' | 'fail'
 
 const { t } = useI18n()
+const route = useRoute()
 const router = useRouter()
 const settings = useSettingsStore()
 const brandIconSrc = `${import.meta.env.BASE_URL}favicon.svg`
@@ -132,7 +134,7 @@ async function connect() {
       credentialPersistence: parsed.value.persistence,
     })
     credentialStore.setApiKey(parsed.value.apiKey, parsed.value.persistence)
-    await router.push('/')
+    await router.push(safeInternalRedirect(route.query.redirect))
   } catch (error) {
     const mapped =
       error instanceof AppApiError

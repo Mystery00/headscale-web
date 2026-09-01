@@ -125,3 +125,26 @@ export function useDeletePreAuthKeyMutation() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['preAuthKeys'] }),
   })
 }
+export function useRegisterAuthMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { authId: string; userName: string }) =>
+      createAppRepositories().auth.register(input),
+    retry: false,
+    onSuccess: () => invalidateNodes(queryClient),
+  })
+}
+
+export function useApproveAuthMutation() {
+  return useMutation({
+    mutationFn: (authId: string) => createAppRepositories().auth.approve(authId),
+    retry: false,
+  })
+}
+
+export function useRejectAuthMutation() {
+  return useMutation({
+    mutationFn: (authId: string) => createAppRepositories().auth.reject(authId),
+    retry: false,
+  })
+}
