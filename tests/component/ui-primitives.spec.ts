@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/vue'
 import { NConfigProvider } from 'naive-ui'
 import { createPinia, setActivePinia } from 'pinia'
-import { defineComponent, h, nextTick, ref } from 'vue'
+import { defineComponent, h } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import type { DataTableColumns } from 'naive-ui'
 import App from '@/App.vue'
@@ -165,62 +165,20 @@ describe('admin UI primitives', () => {
     expect(container.querySelector('.admin-theme-dark')).toBeNull()
   })
 
-  it('blocks typed confirmation until the expected value matches', async () => {
+  it('allows destructive confirmation without typed input', async () => {
     let confirmed = 0
     withProviders(ConfirmDialog, {
       show: true,
       title: 'Delete node',
       message: 'This cannot be undone.',
       confirmLabel: 'Delete',
-      confirmText: 'Type node-a to confirm',
-      expectedText: 'node-a',
       danger: true,
       pending: false,
       onConfirm: () => {
         confirmed += 1
       },
     })
-    expect((screen.getByRole('button', { name: 'Delete' }) as HTMLButtonElement).disabled).toBe(
-      true,
-    )
-    await fireEvent.update(screen.getByRole('textbox'), 'node-a')
     await fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
     expect(confirmed).toBe(1)
-  })
-
-  it('clears typed confirmation when the dialog closes', async () => {
-    const show = ref(true)
-    const Root = defineComponent({
-      setup() {
-        return () =>
-          h(NConfigProvider, null, {
-            default: () =>
-              h(ConfirmDialog, {
-                show: show.value,
-                title: 'Delete node',
-                message: 'This cannot be undone.',
-                confirmLabel: 'Delete',
-                confirmText: 'Type node-a to confirm',
-                expectedText: 'node-a',
-                danger: true,
-                pending: false,
-                'onUpdate:show': (value: boolean) => {
-                  show.value = value
-                },
-              }),
-          })
-      },
-    })
-    render(Root, { global: { plugins: [createAppI18n('en-US')] } })
-    await fireEvent.update(screen.getByRole('textbox'), 'node-a')
-    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('node-a')
-    await fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
-    await nextTick()
-    show.value = true
-    await nextTick()
-    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('')
-    expect((screen.getByRole('button', { name: 'Delete' }) as HTMLButtonElement).disabled).toBe(
-      true,
-    )
   })
 })

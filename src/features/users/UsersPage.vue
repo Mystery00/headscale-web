@@ -337,8 +337,6 @@ async function onDelete() {
       :title="t('users.deleteTitle')"
       :message="t('users.deleteMessage', { name: selected.name, count: relatedNodeCountLabel })"
       :confirm-label="t('users.confirmDelete')"
-      :confirm-text="t('users.confirmName')"
-      :expected-text="selected.name"
       danger
       :pending="deleteUser.isPending.value"
       @confirm="onDelete"

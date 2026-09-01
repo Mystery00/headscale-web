@@ -414,8 +414,6 @@ function onDelete() {
       :title="t('nodes.deleteTitle')"
       :message="t('nodes.deleteMessage', { name: selected.givenName || selected.name })"
       :confirm-label="t('nodes.confirmDelete')"
-      :confirm-text="t('nodes.confirmName')"
-      :expected-text="selected.givenName || selected.name"
       danger
       :pending="deleteNode.isPending.value"
       @confirm="onDelete"

@@ -54,7 +54,6 @@ export const zhCN = {
     provider: 'Provider',
     createdAt: '创建时间',
     allProviders: '全部 Provider',
-    confirmName: '输入用户名以确认',
     relatedNodes: '关联节点',
     nodeCount: '关联节点数量',
     viewNodes: '查看 {name} 的 {count} 个关联节点',
@@ -90,7 +89,6 @@ export const zhCN = {
     expireNow: '立即过期',
     disableExpiry: '禁用过期',
     setTags: '设置标签',
-    confirmName: '输入节点名以确认',
   },
   routes: {
     title: '路由',

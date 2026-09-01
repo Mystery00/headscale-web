@@ -116,7 +116,6 @@ export const enUS = {
     provider: 'Provider',
     createdAt: 'Created',
     allProviders: 'All providers',
-    confirmName: 'Type the user name to confirm',
     relatedNodes: 'Related nodes',
     nodeCount: 'Related node count',
     viewNodes: 'View {count} related nodes for {name}',
@@ -152,7 +151,6 @@ export const enUS = {
     expireNow: 'Expire now',
     disableExpiry: 'Disable expiry',
     setTags: 'Set tags',
-    confirmName: 'Type the node name to confirm',
   },
   routes: {
     title: 'Routes',
