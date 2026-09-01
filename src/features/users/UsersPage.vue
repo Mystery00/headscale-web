@@ -21,6 +21,7 @@ import AppDataTable from '@/components/ui/AppDataTable.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
+import { useListViewState } from '@/composables/use-list-view-state'
 import { formatDateTime } from '@/domain/datetime'
 import type { User } from '@/domain/user'
 import { useNodesQuery, useUsersQuery } from '@/query/use-headscale-queries'
@@ -41,8 +42,15 @@ const nodes = useNodesQuery()
 const createUser = useCreateUserMutation()
 const renameUser = useRenameUserMutation()
 const deleteUser = useDeleteUserMutation()
-const search = ref('')
-const provider = ref<string | null>(null)
+const listView = useListViewState({
+  filters: {
+    q: { queryKey: 'q', defaultValue: '' },
+    provider: { queryKey: 'provider', defaultValue: '' },
+  },
+  sortKeys: ['name', 'email', 'provider', 'nodeCount', 'createdAt'] as const,
+})
+const search = listView.filters.q
+const provider = listView.filters.provider
 const selected = ref<User | null>(null)
 const creating = ref(false)
 const confirmDelete = ref(false)
@@ -64,6 +72,8 @@ const filtered = computed(() => {
     return matchesProvider && (!term || haystack.includes(term))
   })
 })
+const pagination = listView.pagination(computed(() => filtered.value.length))
+listView.syncFocusPage(filtered)
 const nodeCounts = computed(() => {
   if (!nodes.data.value) return null
   const counts = new Map<string, number>()
@@ -110,17 +120,29 @@ const columns = computed<DataTableColumns<User>>(() => [
     title: t('users.name'),
     key: 'name',
     minWidth: 190,
+    sorter: (left, right) =>
+      (left.displayName || left.name).localeCompare(right.displayName || right.name),
+    sortOrder: listView.sortOrderFor('name'),
     render: (user) =>
       h('div', { class: 'user-cell' }, [
         h('strong', user.displayName || user.name),
         user.displayName ? h('span', user.name) : null,
       ]),
   },
-  { title: t('users.email'), key: 'email', minWidth: 210, render: (user) => user.email || '—' },
+  {
+    title: t('users.email'),
+    key: 'email',
+    minWidth: 210,
+    sorter: (left, right) => left.email.localeCompare(right.email),
+    sortOrder: listView.sortOrderFor('email'),
+    render: (user) => user.email || '—',
+  },
   {
     title: t('users.provider'),
     key: 'provider',
     width: 140,
+    sorter: (left, right) => left.provider.localeCompare(right.provider),
+    sortOrder: listView.sortOrderFor('provider'),
     render: (user) =>
       h(StatusBadge, { label: user.provider || '—', tone: user.provider ? 'info' : 'neutral' }),
   },
@@ -128,6 +150,8 @@ const columns = computed<DataTableColumns<User>>(() => [
     title: t('users.nodeCount'),
     key: 'nodeCount',
     width: 130,
+    sorter: (left, right) => (nodeCount(left.id) ?? 0) - (nodeCount(right.id) ?? 0),
+    sortOrder: listView.sortOrderFor('nodeCount'),
     render: (user) => {
       const count = nodeCount(user.id)
       return count === null
@@ -148,6 +172,8 @@ const columns = computed<DataTableColumns<User>>(() => [
     title: t('users.createdAt'),
     key: 'createdAt',
     width: 150,
+    sorter: (left, right) => left.createdAt.getTime() - right.createdAt.getTime(),
+    sortOrder: listView.sortOrderFor('createdAt'),
     render: (user) => formatDate(user.createdAt),
   },
   {
@@ -220,11 +246,11 @@ async function onDelete() {
         <template #prefix><Search :size="17" aria-hidden="true" /></template>
       </NInput>
       <NSelect
-        :value="provider ?? ''"
+        :value="provider"
         :options="providers"
         :aria-label="t('users.provider')"
         class="provider-select"
-        @update:value="provider = $event || null"
+        @update:value="provider = $event || ''"
       />
     </PageToolbar>
 
@@ -244,6 +270,9 @@ async function onDelete() {
       :row-key="(user) => user.id"
       :aria-label="t('users.title')"
       :scroll-x="950"
+      :pagination="pagination"
+      :row-class-name="(user: User) => (user.id === listView.focusId.value ? 'is-focused' : '')"
+      @update:sorter="listView.onSorterChange"
     >
       <template #empty>
         <EmptyState :title="query.isError.value ? t('common.error') : t('common.empty')">

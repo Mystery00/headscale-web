@@ -13,13 +13,14 @@ import {
   useNotification,
 } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { KeyRound, Plus } from '@lucide/vue'
+import { KeyRound, Plus, Search } from '@lucide/vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import PageToolbar from '@/components/ui/PageToolbar.vue'
 import AppDataTable from '@/components/ui/AppDataTable.vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
+import { useListViewState } from '@/composables/use-list-view-state'
 import { formatDateTime } from '@/domain/datetime'
 import { normalizeTags } from '@/domain/tags'
 import type { PreAuthKey, PreAuthKeyState } from '@/domain/preauth-key'
@@ -40,7 +41,20 @@ const users = useUsersQuery()
 const createKey = useCreatePreAuthKeyMutation()
 const expireKey = useExpirePreAuthKeyMutation()
 const deleteKey = useDeletePreAuthKeyMutation()
-const state = ref<PreAuthKeyState | 'all'>('all')
+const listView = useListViewState({
+  filters: {
+    q: { queryKey: 'q', defaultValue: '' },
+    state: {
+      queryKey: 'state',
+      defaultValue: 'all' as PreAuthKeyState | 'all',
+      validate: (value: string): value is PreAuthKeyState | 'all' =>
+        ['all', 'active', 'used', 'expired'].includes(value),
+    },
+  },
+  sortKeys: ['key', 'user', 'state', 'expiration'] as const,
+})
+const search = listView.filters.q
+const state = listView.filters.state
 const creating = ref(false)
 const userId = ref('')
 const reusable = ref(false)
@@ -54,9 +68,17 @@ const bulkDeleteState = ref<BulkDeleteState | null>(null)
 const pendingBulkDeleteIds = ref<string[]>([])
 const deletingBulk = ref(false)
 
-const filtered = computed(() =>
-  (query.data.value ?? []).filter((key) => state.value === 'all' || key.state === state.value),
-)
+const filtered = computed(() => {
+  const term = search.value.trim().toLowerCase()
+  return (query.data.value ?? []).filter((key) => {
+    const matchesState = state.value === 'all' || key.state === state.value
+    const haystack =
+      `${key.keyPreview ?? key.id} ${key.user?.name ?? ''} ${key.aclTags.join(' ')}`.toLowerCase()
+    return matchesState && (!term || haystack.includes(term))
+  })
+})
+const pagination = listView.pagination(computed(() => filtered.value.length))
+listView.syncFocusPage(filtered)
 const expiredKeys = computed(() =>
   (query.data.value ?? []).filter((key) => key.state === 'expired'),
 )
@@ -85,14 +107,33 @@ const columns = computed<DataTableColumns<PreAuthKey>>(() => [
     title: t('preAuthKeys.key'),
     key: 'key',
     minWidth: 170,
+    sorter: (left, right) =>
+      (left.keyPreview ?? left.id).localeCompare(right.keyPreview ?? right.id),
+    sortOrder: listView.sortOrderFor('key'),
     render: (key) => h('code', key.keyPreview ?? '—'),
   },
-  { title: t('preAuthKeys.user'), key: 'user', width: 150, render: (key) => key.user?.name ?? '—' },
-  { title: t('preAuthKeys.state'), key: 'state', width: 120, render: stateBadge },
+  {
+    title: t('preAuthKeys.user'),
+    key: 'user',
+    width: 150,
+    sorter: (left, right) => (left.user?.name ?? '').localeCompare(right.user?.name ?? ''),
+    sortOrder: listView.sortOrderFor('user'),
+    render: (key) => key.user?.name ?? '—',
+  },
+  {
+    title: t('preAuthKeys.state'),
+    key: 'state',
+    width: 120,
+    sorter: (left, right) => left.state.localeCompare(right.state),
+    sortOrder: listView.sortOrderFor('state'),
+    render: stateBadge,
+  },
   {
     title: t('preAuthKeys.expiration'),
     key: 'expiration',
     width: 160,
+    sorter: (left, right) => (left.expiration?.getTime() ?? 0) - (right.expiration?.getTime() ?? 0),
+    sortOrder: listView.sortOrderFor('expiration'),
     render: (key) => formatDate(key.expiration),
   },
   {
@@ -255,9 +296,7 @@ async function deleteBulkKeys() {
   notification.error({
     title: t('common.failed'),
     content: t(
-      kind === 'expired'
-        ? 'preAuthKeys.deleteExpiredPartial'
-        : 'preAuthKeys.deleteUsedPartial',
+      kind === 'expired' ? 'preAuthKeys.deleteExpiredPartial' : 'preAuthKeys.deleteUsedPartial',
       { deleted: deletedCount, failed: failedIds.length },
     ),
   })
@@ -295,6 +334,15 @@ async function deleteBulkKeys() {
       </template>
     </PageHeader>
     <PageToolbar>
+      <NInput
+        v-model:value="search"
+        clearable
+        :placeholder="t('common.search')"
+        :input-props="{ 'aria-label': t('common.search') }"
+        class="search-input"
+      >
+        <template #prefix><Search :size="17" aria-hidden="true" /></template>
+      </NInput>
       <NSelect
         v-model:value="state"
         :options="options"
@@ -318,6 +366,9 @@ async function deleteBulkKeys() {
       :row-key="(key) => key.id"
       :aria-label="t('preAuthKeys.title')"
       :scroll-x="980"
+      :pagination="pagination"
+      :row-class-name="(key: PreAuthKey) => (key.id === listView.focusId.value ? 'is-focused' : '')"
+      @update:sorter="listView.onSorterChange"
     >
       <template #empty>
         <EmptyState :title="query.isError.value ? t('common.error') : t('common.empty')">
@@ -438,6 +489,10 @@ async function deleteBulkKeys() {
 </template>
 
 <style scoped>
+.search-input {
+  width: min(26rem, 100%);
+}
+
 .filter-select {
   width: min(16rem, 100%);
 }

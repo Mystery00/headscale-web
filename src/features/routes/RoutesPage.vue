@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NButton, NSelect, useMessage, useNotification } from 'naive-ui'
+import { NButton, NInput, NSelect, useMessage, useNotification } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { Route as RouteIcon } from '@lucide/vue'
+import { Route as RouteIcon, Search } from '@lucide/vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import PageToolbar from '@/components/ui/PageToolbar.vue'
 import AppDataTable from '@/components/ui/AppDataTable.vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
+import { useListViewState } from '@/composables/use-list-view-state'
 import type { RouteView } from '@/domain/route'
 import { nextApprovedRoutes } from '@/domain/route-approval'
 import { mapRoutesFromNodes } from '@/mappers/route-mapper'
@@ -22,18 +23,41 @@ const notification = useNotification()
 const query = useNodesQuery()
 const mutateRoutes = useSetApprovedRoutesMutation()
 const locked = ref(new Set<string>())
-const filter = ref<'all' | 'pending' | 'approved' | 'exit' | 'subnet'>('all')
+const listView = useListViewState({
+  filters: {
+    q: { queryKey: 'q', defaultValue: '' },
+    filter: {
+      queryKey: 'filter',
+      defaultValue: 'all' as 'all' | 'pending' | 'approved' | 'exit' | 'subnet',
+      validate: (value: string): value is 'all' | 'pending' | 'approved' | 'exit' | 'subnet' =>
+        ['all', 'pending', 'approved', 'exit', 'subnet'].includes(value),
+    },
+  },
+  sortKeys: ['prefix', 'node', 'advertised', 'approved', 'serving'] as const,
+})
+const search = listView.filters.q
+const filter = listView.filters.filter
 const pendingRevoke = ref<RouteView | null>(null)
 const routes = computed(() => mapRoutesFromNodes(query.data.value ?? []))
-const filtered = computed(() =>
-  routes.value.filter((route) => {
-    if (filter.value === 'pending') return route.advertised && !route.approved
-    if (filter.value === 'approved') return route.approved
-    if (filter.value === 'exit') return route.exitRoute
-    if (filter.value === 'subnet') return !route.exitRoute
-    return true
-  }),
-)
+const filtered = computed(() => {
+  const term = search.value.trim().toLowerCase()
+  return routes.value.filter((route) => {
+    const matchesFilter =
+      filter.value === 'pending'
+        ? route.advertised && !route.approved
+        : filter.value === 'approved'
+          ? route.approved
+          : filter.value === 'exit'
+            ? route.exitRoute
+            : filter.value === 'subnet'
+              ? !route.exitRoute
+              : true
+    const matchesSearch = !term || `${route.prefix} ${route.nodeName}`.toLowerCase().includes(term)
+    return matchesFilter && matchesSearch
+  })
+})
+const pagination = listView.pagination(computed(() => filtered.value.length))
+listView.syncFocusPage(filtered)
 const options = computed(() => [
   { label: t('routes.filterAll'), value: 'all' },
   { label: t('routes.filterPending'), value: 'pending' },
@@ -51,25 +75,40 @@ const columns = computed<DataTableColumns<RouteView>>(() => [
     title: t('routes.prefix'),
     key: 'prefix',
     minWidth: 180,
+    sorter: (left, right) => left.prefix.localeCompare(right.prefix),
+    sortOrder: listView.sortOrderFor('prefix'),
     render: (route) => h('code', route.prefix),
   },
-  { title: t('routes.node'), key: 'node', minWidth: 170, render: (route) => route.nodeName },
+  {
+    title: t('routes.node'),
+    key: 'node',
+    minWidth: 170,
+    sorter: (left, right) => left.nodeName.localeCompare(right.nodeName),
+    sortOrder: listView.sortOrderFor('node'),
+    render: (route) => route.nodeName,
+  },
   {
     title: t('routes.advertised'),
     key: 'advertised',
     width: 130,
+    sorter: (left, right) => Number(left.advertised) - Number(right.advertised),
+    sortOrder: listView.sortOrderFor('advertised'),
     render: (route) => badge(route.advertised, t('common.yes'), t('common.no')),
   },
   {
     title: t('routes.approved'),
     key: 'approved',
     width: 130,
+    sorter: (left, right) => Number(left.approved) - Number(right.approved),
+    sortOrder: listView.sortOrderFor('approved'),
     render: (route) => badge(route.approved, t('common.yes'), t('common.no')),
   },
   {
     title: t('routes.serving'),
     key: 'serving',
     width: 130,
+    sorter: (left, right) => Number(left.serving) - Number(right.serving),
+    sortOrder: listView.sortOrderFor('serving'),
     render: (route) => badge(route.serving, t('common.yes'), t('common.no')),
   },
   {
@@ -124,6 +163,15 @@ function confirmRevoke() {
   <section class="admin-page routes-page">
     <PageHeader :title="t('routes.title')" :description="t('routes.description')" />
     <PageToolbar>
+      <NInput
+        v-model:value="search"
+        clearable
+        :placeholder="t('common.search')"
+        :input-props="{ 'aria-label': t('common.search') }"
+        class="search-input"
+      >
+        <template #prefix><Search :size="17" aria-hidden="true" /></template>
+      </NInput>
       <NSelect
         v-model:value="filter"
         :options="options"
@@ -144,6 +192,11 @@ function confirmRevoke() {
       :row-key="(route) => route.id"
       :aria-label="t('routes.title')"
       :scroll-x="900"
+      :pagination="pagination"
+      :row-class-name="
+        (route: RouteView) => (route.id === listView.focusId.value ? 'is-focused' : '')
+      "
+      @update:sorter="listView.onSorterChange"
     >
       <template #empty>
         <EmptyState :title="query.isError.value ? t('common.error') : t('common.empty')">
@@ -175,6 +228,9 @@ function confirmRevoke() {
 </template>
 
 <style scoped>
+.search-input {
+  width: min(26rem, 100%);
+}
 .filter-select {
   width: min(16rem, 100%);
 }

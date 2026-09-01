@@ -102,6 +102,10 @@ onUpdated(() => {
   font-size: 0.875rem;
 }
 
+.app-data-table :deep(.n-data-table-tr.is-focused > .n-data-table-td) {
+  background: color-mix(in srgb, var(--admin-primary) 14%, var(--admin-surface)) !important;
+}
+
 .app-data-table :deep(.n-data-table-tr:hover > .n-data-table-td) {
   background: color-mix(in srgb, var(--admin-primary) 6%, var(--admin-surface)) !important;
 }

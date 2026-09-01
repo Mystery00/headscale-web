@@ -244,34 +244,66 @@ const cards = computed(() => [
           </header>
 
           <div v-if="hasAttention" class="attention-list">
-            <div v-for="node in offlineNodes" :key="`offline-${node.id}`" class="attention-item">
+            <RouterLink
+              v-for="node in offlineNodes"
+              :key="`offline-${node.id}`"
+              class="attention-item"
+              :to="{
+                path: '/nodes',
+                query: { status: 'offline', q: node.givenName || node.name, focus: node.id },
+              }"
+            >
               <WifiOff :size="18" aria-hidden="true" />
               <div>
                 <strong>{{ node.givenName || node.name }}</strong
                 ><span>{{ t('dashboard.offlineList') }}</span>
               </div>
-            </div>
-            <div v-for="node in expiringNodes" :key="`expiry-${node.id}`" class="attention-item">
+            </RouterLink>
+            <RouterLink
+              v-for="node in expiringNodes"
+              :key="`expiry-${node.id}`"
+              class="attention-item"
+              :to="{
+                path: '/nodes',
+                query: { q: node.givenName || node.name, focus: node.id },
+              }"
+            >
               <Activity :size="18" aria-hidden="true" />
               <div>
                 <strong>{{ node.givenName || node.name }}</strong
                 ><span>{{ t('dashboard.expiringNodes') }}</span>
               </div>
-            </div>
-            <div v-for="key in expiringKeys" :key="`key-${key.id}`" class="attention-item">
+            </RouterLink>
+            <RouterLink
+              v-for="key in expiringKeys"
+              :key="`key-${key.id}`"
+              class="attention-item"
+              :to="{
+                path: '/preauth-keys',
+                query: { state: 'active', q: key.keyPreview ?? key.id, focus: key.id },
+              }"
+            >
               <KeyRound :size="18" aria-hidden="true" />
               <div>
                 <strong>{{ key.keyPreview ?? key.id }}</strong
                 ><span>{{ t('dashboard.expiringKeyList') }}</span>
               </div>
-            </div>
-            <div v-for="route in pendingRoutes" :key="route.id" class="attention-item">
+            </RouterLink>
+            <RouterLink
+              v-for="route in pendingRoutes"
+              :key="route.id"
+              class="attention-item"
+              :to="{
+                path: '/routes',
+                query: { filter: 'pending', q: route.prefix, focus: route.id },
+              }"
+            >
               <Route :size="18" aria-hidden="true" />
               <div>
                 <strong>{{ route.prefix }}</strong
                 ><span>{{ route.nodeName }} · {{ t('dashboard.unapprovedRoutes') }}</span>
               </div>
-            </div>
+            </RouterLink>
           </div>
           <EmptyState
             v-else
@@ -352,12 +384,25 @@ const cards = computed(() => [
   gap: 0.65rem;
 }
 .attention-item {
+  color: inherit;
+  text-decoration: none;
   display: flex;
   gap: 0.75rem;
   align-items: center;
   padding: 0.75rem;
   border: 1px solid var(--admin-border);
   border-radius: 0.75rem;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.attention-item:hover {
+  border-color: color-mix(in srgb, var(--admin-primary) 45%, var(--admin-border));
+  background: var(--admin-primary-soft);
+}
+.attention-item:focus-visible {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
 }
 .attention-item svg {
   flex: 0 0 auto;

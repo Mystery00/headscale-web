@@ -127,6 +127,41 @@ describe('NodesPage', () => {
     expect(await screen.findByText('bob-node')).toBeTruthy()
   })
 
+  it('restores filters, sorting, and pagination from the URL', async () => {
+    const alice = { id: '1', name: 'alice', createdAt: '2024-01-01T00:00:00Z' }
+    const nodes = Array.from({ length: 11 }, (_, index) => ({
+      id: String(index + 1),
+      name: `node-${String(index + 1).padStart(2, '0')}`,
+      givenName: `node-${String(index + 1).padStart(2, '0')}`,
+      user: alice,
+      createdAt: '2024-01-01T00:00:00Z',
+      ipAddresses: [`100.64.0.${index + 1}`],
+      online: true,
+    }))
+    server.use(http.get('http://hs.example.com/api/v1/node', () => HttpResponse.json({ nodes })))
+
+    await renderConnected('/nodes?status=online&sort=name&order=descend&page=2&size=10', NodesPage)
+
+    expect(await screen.findByText('node-01')).toBeTruthy()
+    expect(screen.queryByText('node-11')).toBeNull()
+    expect(screen.getByLabelText('Status').textContent).toContain('Online')
+  })
+
+  it('writes table sorting to the URL', async () => {
+    const { router } = await renderConnected('/nodes', NodesPage)
+    await screen.findByText('alice-laptop')
+    await fireEvent.click(screen.getByRole('columnheader', { name: /Name/ }))
+    await waitFor(() => expect(router.currentRoute.value.query.sort).toBe('name'))
+    expect(['ascend', 'descend']).toContain(router.currentRoute.value.query.order)
+  })
+
+  it('writes search state to the URL', async () => {
+    const { router } = await renderConnected('/nodes', NodesPage)
+    const input = await screen.findByLabelText('Search')
+    await fireEvent.update(input, 'alice')
+    await waitFor(() => expect(router.currentRoute.value.query.q).toBe('alice'))
+  })
+
   it('requires confirmation before expiring a node immediately', async () => {
     await renderConnected('/nodes', NodesPage)
     await fireEvent.click(await screen.findByRole('button', { name: 'Details' }))

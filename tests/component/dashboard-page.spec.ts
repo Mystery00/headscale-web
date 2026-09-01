@@ -35,5 +35,8 @@ describe('DashboardPage', () => {
     expect(await screen.findByRole('region', { name: 'Network overview' })).toBeTruthy()
     expect(screen.getByRole('region', { name: 'Needs attention' })).toBeTruthy()
     expect(await screen.findByText('0.0.0.0/0')).toBeTruthy()
+    const pendingRoute = screen.getByRole('link', { name: /0\.0\.0\.0\/0/ })
+    expect(pendingRoute.getAttribute('href')).toContain('/routes?')
+    expect(pendingRoute.getAttribute('href')).toContain('filter=pending')
   })
 })

@@ -21,6 +21,12 @@ describe('UsersPage', () => {
     expect(screen.getByText('alice@example.com')).toBeTruthy()
   })
 
+  it('restores search and provider filters from the URL', async () => {
+    await renderConnected('/users?q=alice&provider=oidc', UsersPage)
+    expect(await screen.findByDisplayValue('alice')).toBeTruthy()
+    expect(screen.getByLabelText('Provider').textContent).toContain('oidc')
+  })
+
   it('shows related node counts and links to the filtered nodes page', async () => {
     const { router } = await renderConnected('/users', UsersPage)
 
@@ -64,10 +70,7 @@ describe('UsersPage', () => {
     const { queryClient } = await renderConnected('/users', UsersPage)
     await fireEvent.click(await screen.findByRole('button', { name: 'Details' }))
     await fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
-    await fireEvent.update(screen.getByLabelText('Type the user name to confirm'), 'alice')
-    expect(
-      (screen.getByRole('button', { name: 'Confirm delete' }) as HTMLButtonElement).disabled,
-    ).toBe(false)
+    expect(screen.getByRole('dialog', { name: 'Delete user' })).toBeTruthy()
 
     server.use(
       http.get('http://hs.example.com/api/v1/node', async () => {
@@ -91,13 +94,13 @@ describe('UsersPage', () => {
     expect(await screen.findByText(/ago$/)).toBeTruthy()
   })
 
-  it('requires the exact user name before deletion', async () => {
+  it('allows delete confirmation without typing the user name', async () => {
     await renderConnected('/users', UsersPage)
     await fireEvent.click(await screen.findByRole('button', { name: 'Details' }))
     await fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
     expect(screen.getByRole('dialog', { name: 'Delete user' })).toBeTruthy()
     expect(
       (screen.getByRole('button', { name: 'Confirm delete' }) as HTMLButtonElement).disabled,
-    ).toBe(true)
+    ).toBe(false)
   })
 })

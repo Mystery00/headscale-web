@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { computed, h, ref, watch } from 'vue'
+import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
 import {
   NButton,
   NDrawer,
@@ -23,6 +22,7 @@ import EmptyState from '@/components/ui/EmptyState.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import AuthRequestDialog from '@/features/auth/AuthRequestDialog.vue'
 import { useMaskedKey } from '@/composables/use-masked-key'
+import { useListViewState } from '@/composables/use-list-view-state'
 import { formatDateTime } from '@/domain/datetime'
 import type { Node } from '@/domain/node'
 import { normalizeTags } from '@/domain/tags'
@@ -36,8 +36,6 @@ import {
 } from '@/query/use-headscale-mutations'
 
 const { t } = useI18n()
-const route = useRoute()
-const router = useRouter()
 const { mask } = useMaskedKey()
 const message = useMessage()
 const notification = useNotification()
@@ -48,9 +46,22 @@ const renameNode = useRenameNodeMutation()
 const setTags = useSetNodeTagsMutation()
 const expireNow = useExpireNodeNowMutation()
 const deleteNode = useDeleteNodeMutation()
-const search = ref('')
-const status = ref<'all' | 'online' | 'offline'>('all')
-const ownerId = ref(typeof route.query.userId === 'string' ? route.query.userId : '')
+const listView = useListViewState({
+  filters: {
+    q: { queryKey: 'q', defaultValue: '' },
+    status: {
+      queryKey: 'status',
+      defaultValue: 'all' as 'all' | 'online' | 'offline',
+      validate: (value: string): value is 'all' | 'online' | 'offline' =>
+        value === 'all' || value === 'online' || value === 'offline',
+    },
+    ownerId: { queryKey: 'userId', defaultValue: '' },
+  },
+  sortKeys: ['status', 'name', 'user', 'lastSeen'] as const,
+})
+const search = listView.filters.q
+const status = listView.filters.status
+const ownerId = listView.filters.ownerId
 const selected = ref<Node | null>(null)
 const renameValue = ref('')
 const tagsValue = ref('')
@@ -77,21 +88,6 @@ const ownerOptions = computed(() => {
   ]
 })
 
-watch(
-  () => route.query.userId,
-  (value) => {
-    ownerId.value = typeof value === 'string' ? value : ''
-  },
-)
-
-watch(ownerId, (value) => {
-  const current = typeof route.query.userId === 'string' ? route.query.userId : ''
-  if (value === current) return
-  const nextQuery = { ...route.query }
-  if (value) nextQuery.userId = value
-  else delete nextQuery.userId
-  void router.replace({ query: nextQuery })
-})
 const filtered = computed(() => {
   const term = search.value.trim().toLowerCase()
   return (query.data.value ?? []).filter((node) => {
@@ -105,6 +101,8 @@ const filtered = computed(() => {
     return matchesStatus && matchesOwner && (!term || haystack.includes(term))
   })
 })
+const pagination = listView.pagination(computed(() => filtered.value.length))
+listView.syncFocusPage(filtered)
 
 function formatDate(date: Date | null) {
   return formatDateTime(date, { locale: settings.locale, style: settings.dateTimeStyle })
@@ -125,6 +123,8 @@ const columns = computed<DataTableColumns<Node>>(() => [
     title: t('nodes.status'),
     key: 'status',
     width: 110,
+    sorter: (left, right) => Number(left.online) - Number(right.online),
+    sortOrder: listView.sortOrderFor('status'),
     render: (node) =>
       h(StatusBadge, {
         label: node.online ? t('common.online') : t('common.offline'),
@@ -135,9 +135,19 @@ const columns = computed<DataTableColumns<Node>>(() => [
     title: t('nodes.name'),
     key: 'name',
     minWidth: 180,
+    sorter: (left, right) =>
+      (left.givenName || left.name).localeCompare(right.givenName || right.name),
+    sortOrder: listView.sortOrderFor('name'),
     render: (node) => h('strong', { class: 'node-name' }, node.givenName || node.name),
   },
-  { title: t('nodes.user'), key: 'user', width: 130, render: (node) => node.user.name },
+  {
+    title: t('nodes.user'),
+    key: 'user',
+    width: 130,
+    sorter: (left, right) => left.user.name.localeCompare(right.user.name),
+    sortOrder: listView.sortOrderFor('user'),
+    render: (node) => node.user.name,
+  },
   {
     title: t('nodes.ip'),
     key: 'ip',
@@ -186,6 +196,8 @@ const columns = computed<DataTableColumns<Node>>(() => [
     title: t('nodes.lastSeen'),
     key: 'lastSeen',
     width: 170,
+    sorter: (left, right) => (left.lastSeen?.getTime() ?? 0) - (right.lastSeen?.getTime() ?? 0),
+    sortOrder: listView.sortOrderFor('lastSeen'),
     render: (node) => formatDate(node.lastSeen),
   },
   {
@@ -304,6 +316,9 @@ function onDelete() {
       :row-key="(node) => node.id"
       :aria-label="t('nodes.title')"
       :scroll-x="1350"
+      :pagination="pagination"
+      :row-class-name="(node: Node) => (node.id === listView.focusId.value ? 'is-focused' : '')"
+      @update:sorter="listView.onSorterChange"
     >
       <template #empty>
         <EmptyState :title="query.isError.value ? t('common.error') : t('common.empty')">

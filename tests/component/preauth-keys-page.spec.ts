@@ -19,6 +19,12 @@ describe('PreAuthKeysPage', () => {
     expect(screen.queryByText('hskey-abcdefghijklmnopqrstuvwxyz')).toBeNull()
   })
 
+  it('restores search and state filters from the URL', async () => {
+    await renderConnected('/preauth-keys?q=hske&state=active', PreAuthKeysPage)
+    expect(await screen.findByDisplayValue('hske')).toBeTruthy()
+    expect(screen.getByLabelText('Filter').textContent).toContain('Active')
+  })
+
   it('disables creation and offers retry when users cannot be loaded', async () => {
     server.use(
       http.get('http://hs.example.com/api/v1/user', () =>
