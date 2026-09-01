@@ -146,6 +146,12 @@ export const zhCN = {
     confirmDelete: '输入 Key ID 以确认删除',
   },
   authRequests: {
+    manualAction: '审批请求',
+    manualTitle: '审批认证请求',
+    manualDescription: '输入 Headscale 客户端显示的 Auth ID 以注册新节点。',
+    manualAuthId: '认证请求 ID',
+    manualPlaceholder: 'hskey-authreq-...',
+    manualContinue: '继续',
     registerTitle: '注册新节点',
     reauthTitle: '批准节点重新认证',
     registerDescription: '有一个新节点正在等待注册到 Headscale 用户下。',

@@ -133,4 +133,54 @@ describe('NodesPage', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Expire now' }))
     expect(screen.getByRole('dialog', { name: 'Expire node now' })).toBeTruthy()
   })
+
+  it('opens the registration approval dialog from the page header', async () => {
+    await renderConnected('/nodes', NodesPage)
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Approve request' }))
+
+    expect(screen.getByRole('dialog', { name: 'Approve authentication request' })).toBeTruthy()
+    expect(screen.getByLabelText('Authentication request ID')).toBeTruthy()
+  })
+
+  it('validates the Auth ID before showing the registration approval flow', async () => {
+    await renderConnected('/nodes', NodesPage)
+    await fireEvent.click(await screen.findByRole('button', { name: 'Approve request' }))
+
+    const input = screen.getByLabelText('Authentication request ID')
+    const continueButton = screen.getByRole('button', { name: 'Continue' })
+    await fireEvent.update(input, 'bad')
+    expect(continueButton.hasAttribute('disabled')).toBe(true)
+
+    await fireEvent.update(input, 'hskey-authreq-abcdefghijklmnopqrstuvwx')
+    expect(continueButton.hasAttribute('disabled')).toBe(false)
+    await fireEvent.click(continueButton)
+
+    expect((await screen.findAllByText('Register new node')).length).toBeGreaterThan(0)
+    expect(screen.getByLabelText('Target user')).toBeTruthy()
+  })
+
+  it('rejects a registration request from the manual approval dialog', async () => {
+    let requestBody: unknown
+    server.use(
+      http.post('http://hs.example.com/api/v1/auth/reject', async ({ request }) => {
+        requestBody = await request.json()
+        return HttpResponse.json({})
+      }),
+    )
+    await renderConnected('/nodes', NodesPage)
+    await fireEvent.click(await screen.findByRole('button', { name: 'Approve request' }))
+    await fireEvent.update(
+      screen.getByLabelText('Authentication request ID'),
+      'hskey-authreq-abcdefghijklmnopqrstuvwx',
+    )
+    await fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Reject request' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Confirm rejection' }))
+
+    await waitFor(() =>
+      expect(requestBody).toEqual({ authId: 'hskey-authreq-abcdefghijklmnopqrstuvwx' }),
+    )
+    expect(await screen.findByText('Authentication request rejected.')).toBeTruthy()
+  })
 })

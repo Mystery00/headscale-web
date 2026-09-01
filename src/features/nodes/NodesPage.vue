@@ -21,6 +21,7 @@ import AppDataTable from '@/components/ui/AppDataTable.vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
+import AuthRequestDialog from '@/features/auth/AuthRequestDialog.vue'
 import { useMaskedKey } from '@/composables/use-masked-key'
 import { formatDateTime } from '@/domain/datetime'
 import type { Node } from '@/domain/node'
@@ -55,6 +56,7 @@ const renameValue = ref('')
 const tagsValue = ref('')
 const confirmExpire = ref(false)
 const confirmDelete = ref(false)
+const showAuthRequest = ref(false)
 
 const statusOptions = computed(() => [
   { label: t('nodes.allStatuses'), value: 'all' },
@@ -257,7 +259,13 @@ function onDelete() {
 
 <template>
   <section class="admin-page nodes-page">
-    <PageHeader :title="t('nodes.title')" :description="t('nodes.description')" />
+    <PageHeader :title="t('nodes.title')" :description="t('nodes.description')">
+      <template #actions>
+        <NButton type="primary" @click="showAuthRequest = true">
+          {{ t('authRequests.manualAction') }}
+        </NButton>
+      </template>
+    </PageHeader>
 
     <PageToolbar>
       <NInput
@@ -387,6 +395,8 @@ function onDelete() {
         </div>
       </NDrawerContent>
     </NDrawer>
+
+    <AuthRequestDialog v-model:show="showAuthRequest" />
 
     <ConfirmDialog
       v-if="selected"

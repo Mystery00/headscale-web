@@ -208,6 +208,12 @@ export const enUS = {
     confirmDelete: 'Type the key ID to confirm deletion',
   },
   authRequests: {
+    manualAction: 'Approve request',
+    manualTitle: 'Approve authentication request',
+    manualDescription: 'Enter the Auth ID shown by the Headscale client to register a new node.',
+    manualAuthId: 'Authentication request ID',
+    manualPlaceholder: 'hskey-authreq-...',
+    manualContinue: 'Continue',
     registerTitle: 'Register new node',
     reauthTitle: 'Approve node re-authentication',
     registerDescription: 'A new node is waiting to be registered under a Headscale user.',
