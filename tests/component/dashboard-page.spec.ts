@@ -16,6 +16,8 @@ describe('DashboardPage', () => {
       expect(screen.getByText('0.29.3')).toBeTruthy()
     })
     expect(screen.getByText('Dashboard')).toBeTruthy()
+    expect(screen.getByText('dev')).toBeTruthy()
+    expect(screen.queryByText('vdev')).toBeNull()
   })
 
   it('shows a retry action instead of zero metrics when a read fails', async () => {

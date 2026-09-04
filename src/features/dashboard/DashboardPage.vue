@@ -217,7 +217,7 @@ const kpiCards = computed(() => [
                 控制台版本
               </dt>
               <dd>
-                <code class="version-badge">v{{ appVersion }}</code>
+                <code class="version-badge">{{ appVersion }}</code>
               </dd>
             </div>
             <div class="network-list__item">
