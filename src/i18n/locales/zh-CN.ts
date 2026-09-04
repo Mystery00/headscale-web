@@ -35,6 +35,7 @@ export const zhCN = {
     revoke: '取消审批',
     expire: '过期',
     copy: '复制',
+    copied: '已复制',
     confirm: '确认',
     success: '已保存',
     failed: '请求失败',

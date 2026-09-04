@@ -1,36 +1,50 @@
 :root {
-  --admin-bg: #f2f6f8;
+  --admin-bg: #f8fafc;
   --admin-surface: #ffffff;
-  --admin-surface-muted: #f7fafb;
-  --admin-border: #dfe8eb;
-  --admin-text: #102235;
-  --admin-muted: #66788a;
+  --admin-surface-muted: #f1f5f9;
+  --admin-border: #e2e8f0;
+  --admin-text: #0f172a;
+  --admin-muted: #64748b;
   --admin-primary: #0f9f78;
-  --admin-primary-soft: rgba(15, 159, 120, 0.12);
-  --admin-sidebar: #09251f;
-  --admin-danger: #d03050;
-  --admin-warning: #f0a020;
-  --admin-info: #2080f0;
-  --admin-success: #18a058;
-  --admin-radius: 12px;
-  --admin-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --admin-primary-soft: rgba(15, 159, 120, 0.08);
+  --admin-sidebar: #ffffff;
+  --admin-sidebar-border: #e2e8f0;
+  --admin-sidebar-text: #0f172a;
+  --admin-sidebar-muted: #64748b;
+  --admin-sidebar-hover: #f1f5f9;
+  --admin-sidebar-active: rgba(15, 159, 120, 0.08);
+  --admin-sidebar-active-text: #0f9f78;
+  --admin-danger: #e11d48;
+  --admin-warning: #f59e0b;
+  --admin-info: #0284c7;
+  --admin-success: #10b981;
+  --admin-radius: 10px;
+  --admin-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --admin-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 }
 
 .admin-theme-dark {
-  --admin-bg: #08111d;
-  --admin-surface: #0f1b2a;
-  --admin-surface-muted: #132235;
-  --admin-border: #25364b;
-  --admin-text: #edf5f7;
+  --admin-bg: #090d16;
+  --admin-surface: #111726;
+  --admin-surface-muted: #182236;
+  --admin-border: #232f45;
+  --admin-text: #f1f5f9;
   --admin-muted: #94a3b8;
-  --admin-primary: #35d0a3;
-  --admin-primary-soft: rgba(53, 208, 163, 0.12);
-  --admin-sidebar: #071712;
-  --admin-danger: #e88080;
-  --admin-warning: #f2c97d;
-  --admin-info: #70b0ff;
-  --admin-success: #63e2b7;
-  --admin-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+  --admin-primary: #2dd4bf;
+  --admin-primary-soft: rgba(45, 212, 191, 0.12);
+  --admin-sidebar: #0d131f;
+  --admin-sidebar-border: #1e293b;
+  --admin-sidebar-text: #f1f5f9;
+  --admin-sidebar-muted: #94a3b8;
+  --admin-sidebar-hover: rgba(255, 255, 255, 0.05);
+  --admin-sidebar-active: rgba(45, 212, 191, 0.12);
+  --admin-sidebar-active-text: #2dd4bf;
+  --admin-danger: #f43f5e;
+  --admin-warning: #fbbf24;
+  --admin-info: #38bdf8;
+  --admin-success: #34d399;
+  --admin-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+  --admin-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
 }
 
 .admin-content {

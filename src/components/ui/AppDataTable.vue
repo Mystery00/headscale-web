@@ -89,28 +89,30 @@ onUpdated(() => {
   --n-merged-border-color: var(--admin-border);
   --n-th-text-color: var(--admin-muted);
   --n-td-text-color: var(--admin-text);
-  --n-th-font-weight: 650;
+  --n-th-font-weight: 600;
 }
 
 .app-data-table :deep(.n-data-table-th) {
-  font-size: 0.78rem;
-  text-transform: none;
-  letter-spacing: 0.01em;
+  font-size: 0.8rem;
+  letter-spacing: -0.01em;
+  padding: 10px 14px !important;
 }
 
 .app-data-table :deep(.n-data-table-td) {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
+  padding: 12px 14px !important;
+  border-bottom: 1px solid var(--admin-border) !important;
 }
 
 .app-data-table :deep(.n-data-table-tr.is-focused > .n-data-table-td) {
-  background: color-mix(in srgb, var(--admin-primary) 14%, var(--admin-surface)) !important;
+  background: color-mix(in srgb, var(--admin-primary) 12%, var(--admin-surface)) !important;
 }
 
 .app-data-table :deep(.n-data-table-tr:hover > .n-data-table-td) {
-  background: color-mix(in srgb, var(--admin-primary) 6%, var(--admin-surface)) !important;
+  background: color-mix(in srgb, var(--admin-primary) 4%, var(--admin-surface)) !important;
 }
 
 .app-data-table :deep(.n-data-table-empty) {
-  padding: 1.5rem 1rem;
+  padding: 2.5rem 1rem;
 }
 </style>

@@ -109,47 +109,50 @@ function onMenuUpdate(key: string) {
 <style scoped>
 .app-nav {
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
   height: 100%;
-  padding: 1rem 0.75rem 1.25rem;
-  color: #e7f8f2;
+  padding: 1.15rem 0.85rem 1.5rem;
+  color: var(--admin-sidebar-text);
+  background: var(--admin-sidebar);
 }
 
 .app-nav__brand {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.8rem;
   align-items: center;
-  padding: 0.35rem 0.5rem 0.85rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.5rem 1rem;
+  border-bottom: 1px solid var(--admin-sidebar-border);
 }
 
 .app-nav__mark {
   display: grid;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.25rem;
+  height: 2.25rem;
   place-items: center;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 0.85rem;
-  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: var(--admin-primary-soft);
+  border: 1px solid color-mix(in srgb, var(--admin-primary) 25%, var(--admin-sidebar-border));
 }
 
 .app-nav__mark img {
   display: block;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
 }
 
 .app-nav__copy {
   display: grid;
-  gap: 0.15rem;
+  gap: 0.2rem;
   min-width: 0;
 }
 
 .app-nav__copy strong {
   overflow: hidden;
   font-size: 0.95rem;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--admin-sidebar-text);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -157,38 +160,57 @@ function onMenuUpdate(key: string) {
 .app-nav__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.45rem;
   align-items: center;
-  color: rgba(231, 248, 242, 0.68);
+  color: var(--admin-sidebar-muted);
   font-size: 0.72rem;
 }
 
 .app-nav__version {
-  padding: 0.08rem 0.35rem;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--admin-sidebar-border);
   border-radius: 999px;
-  color: rgba(231, 248, 242, 0.86);
-  font-size: 0.64rem;
+  color: var(--admin-sidebar-muted);
+  background: var(--admin-sidebar-hover);
+  font-size: 0.65rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   line-height: 1.2;
 }
 
 :deep(.n-menu) {
-  --n-item-text-color: rgba(231, 248, 242, 0.78) !important;
-  --n-item-text-color-hover: #fff !important;
-  --n-item-text-color-active: #fff !important;
-  --n-item-text-color-active-hover: #fff !important;
-  --n-item-icon-color: rgba(231, 248, 242, 0.78) !important;
-  --n-item-icon-color-hover: #fff !important;
-  --n-item-icon-color-active: #fff !important;
-  --n-item-icon-color-active-hover: #fff !important;
-  --n-item-color-hover: rgba(255, 255, 255, 0.08) !important;
-  --n-item-color-active: rgba(53, 208, 163, 0.18) !important;
-  --n-item-color-active-hover: rgba(53, 208, 163, 0.22) !important;
+  --n-item-text-color: var(--admin-sidebar-muted) !important;
+  --n-item-text-color-hover: var(--admin-sidebar-text) !important;
+  --n-item-text-color-active: var(--admin-sidebar-active-text) !important;
+  --n-item-text-color-active-hover: var(--admin-sidebar-active-text) !important;
+  --n-item-icon-color: var(--admin-sidebar-muted) !important;
+  --n-item-icon-color-hover: var(--admin-sidebar-text) !important;
+  --n-item-icon-color-active: var(--admin-sidebar-active-text) !important;
+  --n-item-icon-color-active-hover: var(--admin-sidebar-active-text) !important;
+  --n-item-color-hover: var(--admin-sidebar-hover) !important;
+  --n-item-color-active: var(--admin-sidebar-active) !important;
+  --n-item-color-active-hover: var(--admin-sidebar-active) !important;
   background: transparent !important;
 }
 
 :deep(.n-menu-item-content) {
-  border-radius: 0.75rem !important;
+  border-radius: 6px !important;
+  font-size: 0.88rem !important;
+  font-weight: 500 !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+:deep(.n-menu-item-content::before) {
+  left: 0 !important;
+  right: 0 !important;
+  border-radius: 6px !important;
+}
+
+:deep(.n-menu-item-content.n-menu-item-content--selected) {
+  font-weight: 600 !important;
+}
+
+:deep(.n-menu-item-content.n-menu-item-content--selected::before) {
+  border: 1px solid color-mix(in srgb, var(--admin-sidebar-active-text) 22%, transparent) !important;
 }
 
 :deep(.n-menu-item-content-header a) {

@@ -20,12 +20,11 @@ defineProps<{
 <style scoped>
 .empty-state {
   display: grid;
-  gap: 1rem;
-  justify-items: start;
-  padding: 1.5rem;
-  border: 1px dashed var(--admin-border);
-  border-radius: var(--admin-radius);
-  background: var(--admin-surface-muted);
+  gap: 0.65rem;
+  place-items: center;
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  background: transparent;
 }
 
 .empty-state__copy {
@@ -35,13 +34,14 @@ defineProps<{
 
 strong {
   color: var(--admin-text);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+  font-weight: 600;
 }
 
 p {
   margin: 0;
   color: var(--admin-muted);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   line-height: 1.5;
 }
 
@@ -49,5 +49,6 @@ p {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
+  margin-top: 0.35rem;
 }
 </style>

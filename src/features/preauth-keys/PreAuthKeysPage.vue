@@ -307,20 +307,21 @@ async function deleteBulkKeys() {
   <section class="admin-page keys-page">
     <PageHeader :title="t('preAuthKeys.title')" :description="t('preAuthKeys.description')">
       <template #actions>
-        <NSpace>
+        <NSpace align="center">
           <NButton
+            v-if="expiredKeys.length > 0"
             type="error"
             secondary
-            :disabled="!expiredKeys.length || query.isError.value || deletingBulk"
+            :disabled="query.isError.value || deletingBulk"
             :loading="deletingBulk && bulkDeleteState === 'expired'"
             @click="openBulkDelete('expired', expiredKeys)"
           >
             {{ t('preAuthKeys.deleteExpired', { count: expiredKeys.length }) }}
           </NButton>
           <NButton
-            type="error"
-            secondary
-            :disabled="!usedKeys.length || query.isError.value || deletingBulk"
+            v-if="usedKeys.length > 0"
+            quaternary
+            :disabled="query.isError.value || deletingBulk"
             :loading="deletingBulk && bulkDeleteState === 'used'"
             @click="openBulkDelete('used', usedKeys)"
           >

@@ -96,6 +96,7 @@ export const enUS = {
     revoke: 'Revoke',
     expire: 'Expire',
     copy: 'Copy',
+    copied: 'Copied',
     confirm: 'Confirm',
     success: 'Saved',
     failed: 'The request failed',

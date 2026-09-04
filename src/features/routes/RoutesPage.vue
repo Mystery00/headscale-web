@@ -3,7 +3,7 @@ import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NButton, NInput, NSelect, useMessage, useNotification } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { Route as RouteIcon, Search } from '@lucide/vue'
+import { Check, Route as RouteIcon, Search } from '@lucide/vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import PageToolbar from '@/components/ui/PageToolbar.vue'
 import AppDataTable from '@/components/ui/AppDataTable.vue'
@@ -66,10 +66,6 @@ const options = computed(() => [
   { label: t('routes.filterSubnet'), value: 'subnet' },
 ])
 
-function badge(value: boolean, positive: string, negative: string) {
-  return h(StatusBadge, { label: value ? positive : negative, tone: value ? 'success' : 'neutral' })
-}
-
 const columns = computed<DataTableColumns<RouteView>>(() => [
   {
     title: t('routes.prefix'),
@@ -77,7 +73,7 @@ const columns = computed<DataTableColumns<RouteView>>(() => [
     minWidth: 180,
     sorter: (left, right) => left.prefix.localeCompare(right.prefix),
     sortOrder: listView.sortOrderFor('prefix'),
-    render: (route) => h('code', route.prefix),
+    render: (route) => h('code', { class: 'route-prefix' }, route.prefix),
   },
   {
     title: t('routes.node'),
@@ -85,15 +81,21 @@ const columns = computed<DataTableColumns<RouteView>>(() => [
     minWidth: 170,
     sorter: (left, right) => left.nodeName.localeCompare(right.nodeName),
     sortOrder: listView.sortOrderFor('node'),
-    render: (route) => route.nodeName,
+    render: (route) => h('span', { class: 'route-node-name' }, route.nodeName),
   },
   {
     title: t('routes.advertised'),
     key: 'advertised',
-    width: 130,
+    width: 120,
     sorter: (left, right) => Number(left.advertised) - Number(right.advertised),
     sortOrder: listView.sortOrderFor('advertised'),
-    render: (route) => badge(route.advertised, t('common.yes'), t('common.no')),
+    render: (route) =>
+      route.advertised
+        ? h('span', { class: 'cell-status-normal' }, [
+            h(Check, { size: 14, class: 'icon-success' }),
+            h('span', t('common.yes')),
+          ])
+        : h('span', { class: 'cell-status-empty' }, '—'),
   },
   {
     title: t('routes.approved'),
@@ -101,15 +103,24 @@ const columns = computed<DataTableColumns<RouteView>>(() => [
     width: 130,
     sorter: (left, right) => Number(left.approved) - Number(right.approved),
     sortOrder: listView.sortOrderFor('approved'),
-    render: (route) => badge(route.approved, t('common.yes'), t('common.no')),
+    render: (route) =>
+      route.approved
+        ? h(StatusBadge, { label: t('common.yes'), tone: 'success' })
+        : h(StatusBadge, { label: t('routes.filterPending'), tone: 'warning' }),
   },
   {
     title: t('routes.serving'),
     key: 'serving',
-    width: 130,
+    width: 120,
     sorter: (left, right) => Number(left.serving) - Number(right.serving),
     sortOrder: listView.sortOrderFor('serving'),
-    render: (route) => badge(route.serving, t('common.yes'), t('common.no')),
+    render: (route) =>
+      route.serving
+        ? h('span', { class: 'cell-status-normal' }, [
+            h(Check, { size: 14, class: 'icon-success' }),
+            h('span', t('common.yes')),
+          ])
+        : h('span', { class: 'cell-status-empty' }, '—'),
   },
   {
     title: t('common.details'),
@@ -120,9 +131,10 @@ const columns = computed<DataTableColumns<RouteView>>(() => [
         NButton,
         {
           size: 'small',
-          type: route.approved ? 'warning' : 'primary',
-          secondary: true,
+          type: route.approved ? 'default' : 'primary',
+          quaternary: route.approved,
           disabled: locked.value.has(route.nodeId),
+          class: route.approved ? 'action-revoke-btn' : '',
           onClick: () => (route.approved ? (pendingRevoke.value = route) : toggle(route, true)),
         },
         { default: () => (route.approved ? t('common.revoke') : t('common.approve')) },
@@ -234,8 +246,36 @@ function confirmRevoke() {
 .filter-select {
   width: min(16rem, 100%);
 }
-:deep(code) {
+:deep(.route-prefix) {
   color: var(--admin-text);
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.85rem;
+  background: var(--admin-surface-muted);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+:deep(.route-node-name) {
+  font-weight: 500;
+  color: var(--admin-text);
+}
+:deep(.cell-status-normal) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--admin-muted);
+}
+:deep(.icon-success) {
+  color: var(--admin-success);
+}
+:deep(.cell-status-empty) {
+  color: var(--admin-muted);
+}
+:deep(.action-revoke-btn) {
+  color: var(--admin-muted);
+  transition: color 0.15s ease;
+}
+:deep(.action-revoke-btn:hover) {
+  color: var(--admin-warning) !important;
 }
 </style>

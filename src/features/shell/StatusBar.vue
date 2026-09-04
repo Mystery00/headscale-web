@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RefreshCw } from '@lucide/vue'
+import { RefreshCw, Server } from '@lucide/vue'
 import { NButton, NSelect } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -56,16 +56,19 @@ function onTheme(value: ThemePreference) {
 
 <template>
   <div class="status-bar">
-    <span class="status-bar__instance" :title="instanceLabel">{{ instanceLabel }}</span>
+    <div class="status-bar__instance-capsule" :title="instanceLabel">
+      <Server :size="13" class="status-bar__instance-icon" aria-hidden="true" />
+      <span class="status-bar__instance">{{ instanceLabel }}</span>
+    </div>
     <StatusBadge
       :label="versionLabel"
       tone="info"
       :aria-label="`${t('shell.version')}: ${versionLabel}`"
     />
     <StatusBadge :label="databaseLabel" :tone="databaseTone" />
-    <NButton size="small" quaternary :aria-label="t('shell.refresh')" @click="refreshAll">
+    <NButton size="small" quaternary :aria-label="t('shell.refresh')" class="status-bar__action-btn" @click="refreshAll">
       <template #icon>
-        <RefreshCw :size="16" aria-hidden="true" />
+        <RefreshCw :size="14" aria-hidden="true" />
       </template>
       <span class="status-bar__refresh-label">{{ t('shell.refresh') }}</span>
     </NButton>
@@ -98,17 +101,34 @@ function onTheme(value: ThemePreference) {
   min-width: 0;
 }
 
-.status-bar__instance {
+.status-bar__instance-capsule {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: var(--admin-surface-muted);
+  border: 1px solid var(--admin-border);
   max-width: 18rem;
-  overflow: hidden;
+}
+
+.status-bar__instance-icon {
   color: var(--admin-muted);
-  font-size: 0.82rem;
+  flex-shrink: 0;
+}
+
+.status-bar__instance {
+  overflow: hidden;
+  color: var(--admin-text);
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .status-bar__select {
-  width: 8rem;
+  width: 7.5rem;
 }
 
 .status-bar__refresh-label {
@@ -116,12 +136,12 @@ function onTheme(value: ThemePreference) {
 }
 
 @media (max-width: 860px) {
-  .status-bar__instance {
-    max-width: 9rem;
+  .status-bar__instance-capsule {
+    max-width: 10rem;
   }
 
   .status-bar__select {
-    width: 7rem;
+    width: 6.5rem;
   }
 }
 

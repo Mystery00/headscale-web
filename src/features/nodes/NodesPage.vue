@@ -13,7 +13,7 @@ import {
   useNotification,
 } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { Clock, KeyRound, Search, Server, Tags } from '@lucide/vue'
+import { AlertTriangle, Copy, KeyRound, Search, Server, Tags } from '@lucide/vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import PageToolbar from '@/components/ui/PageToolbar.vue'
 import AppDataTable from '@/components/ui/AppDataTable.vue'
@@ -46,6 +46,12 @@ const renameNode = useRenameNodeMutation()
 const setTags = useSetNodeTagsMutation()
 const expireNow = useExpireNodeNowMutation()
 const deleteNode = useDeleteNodeMutation()
+
+function copyToClipboard(text: string) {
+  void navigator.clipboard.writeText(text).then(() => {
+    message.success(t('common.copied', '已复制到剪贴板'))
+  })
+}
 const listView = useListViewState({
   filters: {
     q: { queryKey: 'q', defaultValue: '' },
@@ -209,12 +215,12 @@ const columns = computed<DataTableColumns<Node>>(() => [
   {
     title: t('common.details'),
     key: 'actions',
-    width: 110,
+    width: 90,
     fixed: 'right',
     render: (node) =>
       h(
         NButton,
-        { size: 'small', secondary: true, onClick: () => open(node) },
+        { size: 'small', quaternary: true, onClick: () => open(node) },
         { default: () => t('common.details') },
       ),
   },
@@ -337,8 +343,8 @@ function onDelete() {
       <NDrawerContent v-if="selected" :title="selected.givenName || selected.name" closable>
         <div class="drawer-stack">
           <section class="drawer-section">
-            <h2><Server :size="17" aria-hidden="true" />{{ t('nodes.overview') }}</h2>
-            <dl>
+            <h2 class="drawer-section__title"><Server :size="16" aria-hidden="true" />{{ t('nodes.overview') }}</h2>
+            <dl class="drawer-dl">
               <div>
                 <dt>{{ t('nodes.status') }}</dt>
                 <dd>
@@ -354,7 +360,7 @@ function onDelete() {
               </div>
               <div>
                 <dt>{{ t('nodes.registerMethod') }}</dt>
-                <dd>{{ selected.registerMethod }}</dd>
+                <dd><span class="method-tag">{{ selected.registerMethod }}</span></dd>
               </div>
               <div>
                 <dt>{{ t('nodes.createdAt') }}</dt>
@@ -364,48 +370,79 @@ function onDelete() {
           </section>
 
           <section class="drawer-section">
-            <h2><KeyRound :size="17" aria-hidden="true" />{{ t('nodes.keys') }}</h2>
-            <code>{{ t('nodes.machineKey') }}: {{ mask(selected.machineKey) }}</code>
-            <code>{{ t('nodes.nodeKey') }}: {{ mask(selected.nodeKey) }}</code>
-            <code>{{ t('nodes.discoKey') }}: {{ mask(selected.discoKey) }}</code>
+            <h2 class="drawer-section__title"><KeyRound :size="16" aria-hidden="true" />{{ t('nodes.keys') }}</h2>
+            <div class="key-item">
+              <span class="key-label">{{ t('nodes.machineKey') }}</span>
+              <div class="key-val">
+                <code>{{ mask(selected.machineKey) }}</code>
+                <NButton size="tiny" quaternary :aria-label="t('common.copy', '复制')" @click="copyToClipboard(selected.machineKey)">
+                  <template #icon><Copy :size="13" /></template>
+                </NButton>
+              </div>
+            </div>
+            <div class="key-item">
+              <span class="key-label">{{ t('nodes.nodeKey') }}</span>
+              <div class="key-val">
+                <code>{{ mask(selected.nodeKey) }}</code>
+                <NButton size="tiny" quaternary :aria-label="t('common.copy', '复制')" @click="copyToClipboard(selected.nodeKey)">
+                  <template #icon><Copy :size="13" /></template>
+                </NButton>
+              </div>
+            </div>
+            <div class="key-item">
+              <span class="key-label">{{ t('nodes.discoKey') }}</span>
+              <div class="key-val">
+                <code>{{ mask(selected.discoKey) }}</code>
+                <NButton size="tiny" quaternary :aria-label="t('common.copy', '复制')" @click="copyToClipboard(selected.discoKey)">
+                  <template #icon><Copy :size="13" /></template>
+                </NButton>
+              </div>
+            </div>
           </section>
 
           <section class="drawer-section">
-            <h2>{{ t('common.rename') }}</h2>
-            <NInput
-              v-model:value="renameValue"
-              :input-props="{ 'aria-label': t('common.rename') }"
-            />
-            <NButton
-              :loading="renameNode.isPending.value"
-              :disabled="!renameValue.trim()"
-              @click="onRename"
-              >{{ t('common.rename') }}</NButton
-            >
+            <h2 class="drawer-section__title">{{ t('common.rename') }}</h2>
+            <div class="form-row">
+              <NInput
+                v-model:value="renameValue"
+                :input-props="{ 'aria-label': t('common.rename') }"
+              />
+              <NButton
+                :loading="renameNode.isPending.value"
+                :disabled="!renameValue.trim()"
+                @click="onRename"
+                >{{ t('common.rename') }}</NButton
+              >
+            </div>
           </section>
 
           <section class="drawer-section">
-            <h2><Tags :size="17" aria-hidden="true" />{{ t('nodes.setTags') }}</h2>
-            <NInput
-              v-model:value="tagsValue"
-              :input-props="{ 'aria-label': t('nodes.setTags') }"
-              :placeholder="t('nodes.tagsPlaceholder')"
-            />
-            <NButton :loading="setTags.isPending.value" @click="onSetTags">{{
-              t('nodes.setTags')
-            }}</NButton>
+            <h2 class="drawer-section__title"><Tags :size="16" aria-hidden="true" />{{ t('nodes.setTags') }}</h2>
+            <div class="form-row">
+              <NInput
+                v-model:value="tagsValue"
+                :input-props="{ 'aria-label': t('nodes.setTags') }"
+                :placeholder="t('nodes.tagsPlaceholder')"
+              />
+              <NButton :loading="setTags.isPending.value" @click="onSetTags">{{
+                t('nodes.setTags')
+              }}</NButton>
+            </div>
           </section>
 
           <section class="drawer-section danger-zone">
-            <h2><Clock :size="17" aria-hidden="true" />{{ t('nodes.dangerZone') }}</h2>
-            <NSpace vertical>
+            <h2 class="drawer-section__title text-danger">
+              <AlertTriangle :size="16" aria-hidden="true" />{{ t('nodes.dangerZone') }}
+            </h2>
+            <p class="danger-desc">以下操作直接影响设备网络连通，请谨慎执行。</p>
+            <div class="danger-actions">
               <NButton type="warning" secondary @click="confirmExpire = true">{{
                 t('nodes.expireNow')
               }}</NButton>
               <NButton type="error" secondary @click="confirmDelete = true">{{
                 t('common.delete')
               }}</NButton>
-            </NSpace>
+            </div>
           </section>
         </div>
       </NDrawerContent>
@@ -448,57 +485,108 @@ function onDelete() {
 }
 .node-name {
   color: var(--admin-text);
+  font-weight: 600;
 }
 :deep(.ip-chip) {
   color: var(--admin-text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.78rem;
+  background: var(--admin-surface-muted);
 }
 .drawer-stack {
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
+  padding: 0.25rem 0;
 }
 .drawer-section {
   display: grid;
   gap: 0.75rem;
-  padding: 1rem;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius);
-  background: var(--admin-surface-muted);
+  padding-bottom: 1.15rem;
+  border-bottom: 1px solid var(--admin-border);
 }
-.drawer-section h2 {
+.drawer-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.drawer-section__title {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.45rem;
   align-items: center;
   margin: 0;
   color: var(--admin-text);
-  font-size: 0.92rem;
+  font-size: 0.88rem;
+  font-weight: 600;
 }
-.drawer-section code {
-  overflow-wrap: anywhere;
-  color: var(--admin-muted);
-  font-size: 0.75rem;
-}
-dl {
+.drawer-dl {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.5rem;
   margin: 0;
 }
-dl div {
+.drawer-dl div {
   display: flex;
-  gap: 1rem;
   align-items: center;
   justify-content: space-between;
+  padding: 0.35rem 0;
 }
-dt {
+.drawer-dl dt {
   color: var(--admin-muted);
+  font-size: 0.82rem;
 }
-dd {
+.drawer-dl dd {
   margin: 0;
   color: var(--admin-text);
-  font-weight: 600;
-  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.method-tag {
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: var(--admin-surface-muted);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.78rem;
+}
+.key-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.65rem;
+  border-radius: 6px;
+  background: var(--admin-surface-muted);
+}
+.key-label {
+  font-size: 0.78rem;
+  color: var(--admin-muted);
+}
+.key-val {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.key-val code {
+  font-size: 0.76rem;
+  color: var(--admin-text);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+.form-row {
+  display: flex;
+  gap: 0.5rem;
 }
 .danger-zone {
-  border-color: color-mix(in srgb, var(--admin-danger) 35%, var(--admin-border));
+  border-radius: 8px;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--admin-danger) 4%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--admin-danger) 30%, var(--admin-border));
+}
+.text-danger {
+  color: var(--admin-danger) !important;
+}
+.danger-desc {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--admin-muted);
+}
+.danger-actions {
+  display: flex;
+  gap: 0.5rem;
 }
 </style>

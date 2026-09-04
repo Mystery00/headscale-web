@@ -77,12 +77,13 @@ function disconnect() {
             <StatusBar />
             <NButton
               class="disconnect-button"
-              type="error"
-              secondary
+              quaternary
+              size="small"
+              :aria-label="t('shell.disconnect')"
               @click="confirmDisconnect = true"
             >
               <template #icon>
-                <LogOut :size="16" aria-hidden="true" />
+                <LogOut :size="15" aria-hidden="true" />
               </template>
               {{ t('shell.disconnect') }}
             </NButton>
@@ -134,6 +135,7 @@ function disconnect() {
 
 .app-shell__sider {
   background: var(--admin-sidebar) !important;
+  border-right: 1px solid var(--admin-sidebar-border) !important;
 }
 
 .app-shell__sider :deep(.n-layout-sider-scroll-container) {
@@ -175,6 +177,12 @@ function disconnect() {
 .disconnect-button {
   flex: 0 0 auto;
   margin-left: auto;
+  color: var(--admin-muted);
+  transition: color 0.15s ease-in-out;
+}
+
+.disconnect-button:hover {
+  color: var(--admin-danger) !important;
 }
 
 @media (max-width: 860px) {
@@ -203,7 +211,7 @@ function disconnect() {
 .n-drawer.app-shell__drawer,
 .n-drawer.app-shell__drawer .n-drawer-content-wrapper,
 .n-drawer.app-shell__drawer .app-shell__drawer-content {
-  color: #e7f8f2;
+  color: var(--admin-sidebar-text);
   background: var(--admin-sidebar) !important;
 }
 
