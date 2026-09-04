@@ -107,6 +107,33 @@ describe('admin UI primitives', () => {
     expect(screen.getByText('alice')).toBeTruthy()
   })
 
+  it('keeps pagination away from the card edges', async () => {
+    type Row = { id: string; name: string }
+    const columns: DataTableColumns<Row> = [{ title: 'Name', key: 'name' }]
+    const data: Row[] = [{ id: '1', name: 'alice' }]
+    const { container } = withProviders(AppDataTable, {
+      columns,
+      data,
+      rowKey: (row: Row) => row.id,
+      pagination: {
+        page: 1,
+        pageSize: 25,
+        itemCount: 26,
+        showSizePicker: true,
+        pageSizes: [25],
+      },
+      themeOverrides: {
+        thColor: '#123456',
+      },
+    })
+    await nextTick()
+    const table = container.querySelector<HTMLElement>('.n-data-table')
+    expect(table).not.toBeNull()
+    expect(container.querySelector('.n-data-table__pagination')).not.toBeNull()
+    expect(table!.style.getPropertyValue('--n-pagination-margin')).toBe('12px 14px 14px')
+    expect(table!.style.getPropertyValue('--n-th-color')).toBe('#123456')
+  })
+
   it('accepts domain User rows without an index signature', async () => {
     const data: User[] = [
       {

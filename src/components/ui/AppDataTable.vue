@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T extends object">
 import { computed, nextTick, onUpdated, ref, useAttrs, watch } from 'vue'
 import { NDataTable } from 'naive-ui'
-import type { DataTableColumns, DataTableRowKey } from 'naive-ui'
+import type { DataTableColumns, DataTableProps, DataTableRowKey } from 'naive-ui'
 
 defineOptions({
   inheritAttrs: false,
@@ -15,6 +15,7 @@ const props = withDefaults(
     rowKey?: (row: T) => DataTableRowKey
     scrollX?: number | string
     ariaLabel?: string
+    themeOverrides?: DataTableProps['themeOverrides']
   }>(),
   {
     loading: false,
@@ -23,6 +24,10 @@ const props = withDefaults(
 
 const attrs = useAttrs()
 const root = ref<HTMLElement | null>(null)
+const dataTableThemeOverrides = computed(() => ({
+  ...props.themeOverrides,
+  paginationMargin: '12px 14px 14px',
+}))
 
 const tableAttrs = computed(() => {
   const next = { ...attrs } as Record<string, unknown>
@@ -62,6 +67,7 @@ onUpdated(() => {
       :loading="loading"
       :row-key="rowKey"
       :scroll-x="scrollX"
+      :theme-overrides="dataTableThemeOverrides"
       :bordered="false"
       :single-line="false"
       size="medium"
