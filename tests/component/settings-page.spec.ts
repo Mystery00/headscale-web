@@ -30,6 +30,15 @@ describe('SettingsPage', () => {
     expect(screen.getByLabelText('Automatic polling')).toBeTruthy()
   })
 
+  it('allows automatic update checks to be disabled and persists that choice', async () => {
+    await renderConnected('/settings', SettingsPage)
+    const toggle = screen.getByRole('switch', { name: 'Automatically check for updates' })
+    expect(toggle.getAttribute('aria-checked')).toBe('true')
+    await fireEvent.click(toggle)
+    expect(useSettingsStore().updateChecksEnabled).toBe(false)
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.settings)!).updateChecksEnabled).toBe(false)
+  })
+
   it('persists the URL and migrates the current credential between storage modes', async () => {
     await renderConnected('/settings', SettingsPage, { apiKey: 'test-key' })
     await fireEvent.update(screen.getByLabelText('Headscale URL'), 'http://new.example.com/')

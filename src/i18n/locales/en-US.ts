@@ -61,6 +61,10 @@ export const enUS = {
     },
   },
   shell: {
+    appRepository: 'Headscale Web repository (opens in a new tab)',
+    headscaleRepository: 'Headscale {version} repository (opens in a new tab)',
+    updateAvailable: 'Update available',
+    updateAvailableVersion: 'Update available: {version} (opens in a new tab)',
     disconnect: 'Disconnect',
     consoleLabel: 'Admin console',
     version: 'Version',
@@ -271,6 +275,13 @@ export const enUS = {
     expiringNodes: 'Expiring nodes',
     expiringKeyList: 'Expiring PreAuth keys',
     unapprovedRoutes: 'Advertised but not approved',
+  },
+  updates: {
+    title: 'Application updates',
+    enabled: 'Automatically check for updates',
+    hint: 'Check GitHub for new stable Headscale Web releases when opening the console. Results, including failed checks, are cached for 24 hours. Development builds do not check for updates.',
+    privacy:
+      'Contacts api.github.com without your Headscale URL, API key, resource data, cookies, or referrer. GitHub can still see standard connection metadata such as your IP address. Disable this for offline or restricted deployments.',
   },
   settings: {
     title: 'Settings',

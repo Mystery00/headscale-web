@@ -4,7 +4,8 @@ import { NMenu } from 'naive-ui'
 import { computed, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
-import { appVersion } from '@/config/app'
+import { APP_REPOSITORY_URL, appVersion } from '@/config/app'
+import { useAppUpdate } from '@/query/use-app-update'
 
 const emit = defineEmits<{
   select: [key: string]
@@ -12,6 +13,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const route = useRoute()
+const appUpdate = useAppUpdate()
 const brandIconSrc = `${import.meta.env.BASE_URL}favicon.svg`
 
 function iconNode(Icon: typeof LayoutDashboard) {
@@ -83,16 +85,34 @@ function onMenuUpdate(key: string) {
 <template>
   <div class="app-nav">
     <div class="app-nav__brand">
-      <span class="app-nav__mark" aria-hidden="true">
-        <img :src="brandIconSrc" width="28" height="28" alt="" />
-      </span>
-      <div class="app-nav__copy">
-        <strong>{{ t('app.title') }}</strong>
-        <span class="app-nav__meta">
-          <span>{{ t('shell.consoleLabel') }}</span>
-          <span class="app-nav__version">{{ appVersion }}</span>
+      <a
+        class="app-nav__brand-link"
+        :href="APP_REPOSITORY_URL"
+        target="_blank"
+        rel="noopener noreferrer"
+        :aria-label="t('shell.appRepository')"
+      >
+        <span class="app-nav__mark" aria-hidden="true">
+          <img :src="brandIconSrc" width="28" height="28" alt="" />
         </span>
-      </div>
+        <div class="app-nav__copy">
+          <strong>{{ t('app.title') }}</strong>
+        </div>
+      </a>
+      <span class="app-nav__meta">
+        <span>{{ t('shell.consoleLabel') }}</span>
+        <span class="app-nav__version">{{ appVersion }}</span>
+        <a
+          v-if="appUpdate"
+          class="app-nav__update"
+          :href="appUpdate.url"
+          target="_blank"
+          rel="noopener noreferrer"
+          :title="t('shell.updateAvailableVersion', { version: appUpdate.version })"
+          :aria-label="t('shell.updateAvailableVersion', { version: appUpdate.version })"
+          >{{ t('shell.updateAvailable') }}</a
+        >
+      </span>
     </div>
     <nav :aria-label="t('nav.primary')">
       <NMenu
@@ -109,6 +129,7 @@ function onMenuUpdate(key: string) {
 <style scoped>
 .app-nav {
   display: grid;
+  grid-template-rows: auto 1fr;
   gap: 1.25rem;
   height: 100%;
   padding: 1.15rem 0.85rem 1.5rem;
@@ -117,11 +138,44 @@ function onMenuUpdate(key: string) {
 }
 
 .app-nav__brand {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.25rem 0.5rem 1rem;
+  border-bottom: 1px solid var(--admin-sidebar-border);
+}
+
+.app-nav__brand-link {
   display: flex;
   gap: 0.8rem;
   align-items: center;
-  padding: 0.25rem 0.5rem 1rem;
-  border-bottom: 1px solid var(--admin-sidebar-border);
+  color: inherit;
+  text-decoration: none;
+  border-radius: 6px;
+}
+
+.app-nav__brand-link:hover strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.app-nav__brand-link:focus-visible,
+.app-nav__update:focus-visible {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 3px;
+}
+
+.app-nav__update {
+  padding: 0.12rem 0.4rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--admin-danger);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.app-nav__update:hover {
+  text-decoration: underline;
 }
 
 .app-nav__mark {

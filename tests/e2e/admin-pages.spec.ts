@@ -108,6 +108,26 @@ test('keeps every authenticated page contained at mobile width', async ({ page }
   }
 })
 
+test('keeps the repository header compact inside the mobile navigation drawer', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await connect(page)
+  const versionLink = page.getByRole('link', {
+    name: 'Headscale 0.29.3 repository (opens in a new tab)',
+  })
+  await expect(versionLink).toHaveAttribute('href', 'https://github.com/juanfont/headscale')
+  await expect(versionLink).toHaveAttribute('target', '_blank')
+  await page.getByRole('button', { name: 'Menu' }).click()
+  const drawer = page.getByRole('dialog', { name: 'Primary navigation' })
+  const brand = drawer.getByRole('link', { name: 'Headscale Web repository (opens in a new tab)' })
+  await expect(brand).toBeVisible()
+  await expect(brand).toHaveAttribute('href', 'https://github.com/Mystery00/headscale-web')
+  await expect(brand).toHaveAttribute('target', '_blank')
+  const bounds = await drawer.locator('.app-nav__brand').boundingBox()
+  expect(bounds!.height).toBeLessThan(120)
+})
+
 test('returns from connection and approves a re-authentication request', async ({ page }) => {
   const authId = 'hskey-authreq-abcdefghijklmnopqrstuvwx'
   await page.goto('/auth?authId=' + authId)

@@ -194,7 +194,9 @@ The packaged container runs as non-root user `101`, listens on port `8080`, supp
 
 ## 10. Cross-origin deployment
 
-Same-origin deployment is recommended because it avoids CORS and allows a narrow `connect-src 'self'` policy.
+Same-origin deployment is recommended because it avoids CORS for Headscale requests. Packaged CSP policies use `connect-src 'self' https://api.github.com`; the additional exact origin permits optional frontend update checks, not Headscale traffic.
+
+Release builds check the latest stable Headscale Web release through a separate, credential-free GitHub request when entering the management UI. A dedicated Vue Query key deduplicates desktop/mobile consumers, and browser storage caches results (including failures) for 24 hours. Checks omit cookies and referrers, never use the Headscale HTTP client, and never send Headscale URLs, keys, or resource data. Newer versions produce a release-notes link rather than an automatic installation. Unknown/development versions skip checking, failures remain non-blocking, and Settings can disable checking and hide the notification. Restricted deployments may omit the GitHub origin from their CSP.
 
 For an independent UI origin, Headscale or its reverse proxy must allow the exact UI origin on `/version` and `/api/v1/*`, including OPTIONS preflight. Wildcard origins and `connect-src *` are not recommended.
 

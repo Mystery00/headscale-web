@@ -174,6 +174,12 @@ Vary: Origin
 
 Answer OPTIONS preflight requests. Allow only the exact UI origin; do not use `*`. The UI does not send cookies to Headscale (`credentials` remains `same-origin`). Configure `connect-src` with the exact Headscale origin instead of `connect-src *`.
 
+### Update checks and Content Security Policy
+
+The packaged Nginx configuration and example `Caddyfile` allow `connect-src 'self' https://api.github.com` so release builds can check for new Headscale Web releases. If your reverse proxy sets an additional CSP header, that policy must also allow `https://api.github.com`; a more restrictive policy cannot be relaxed by the application's header. Retain any exact Headscale origin needed by a cross-origin deployment. Do not use a wildcard.
+
+Checks run when entering the management interface, cache results (including failures) for 24 hours, and do not send Headscale credentials or resource data, cookies, or a referrer to GitHub. GitHub still sees standard connection metadata such as the browser's public IP address. `dev` builds skip the check. Users can turn it off under **Settings → Application updates**. In an offline or restricted deployment, you may also omit the GitHub origin from your CSP; unavailable checks never block administration. No server-side proxy or GitHub token is required.
+
 Because the browser origin is the UI origin in this model, replace the pre-filled URL with the independent Headscale origin before connecting. The CORS policy must permit the read-only `GET /api/v1/apikey` status request in addition to the existing API operations.
 
 ## Build from source

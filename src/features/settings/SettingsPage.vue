@@ -16,7 +16,7 @@ import {
   useMessage,
   useNotification,
 } from 'naive-ui'
-import { Brush, KeyRound, PlugZap, RefreshCw, Save, Unplug } from '@lucide/vue'
+import { Brush, Download, KeyRound, PlugZap, RefreshCw, Save, Unplug } from '@lucide/vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import { createHeadscaleHttp } from '@/api/http'
@@ -272,6 +272,31 @@ function disconnect() {
             </div>
           </div>
         </template>
+      </section>
+
+      <section
+        class="admin-card settings-card settings-card--wide"
+        role="region"
+        :aria-label="t('updates.title')"
+      >
+        <header class="card-heading">
+          <div class="card-icon"><Download :size="20" aria-hidden="true" /></div>
+          <div>
+            <h2>{{ t('updates.title') }}</h2>
+            <p>{{ t('updates.hint') }}</p>
+          </div>
+        </header>
+        <div class="setting-row">
+          <div>
+            <strong>{{ t('updates.enabled') }}</strong>
+            <span>{{ t('updates.privacy') }}</span>
+          </div>
+          <NSwitch
+            :value="settings.updateChecksEnabled"
+            :aria-label="t('updates.enabled')"
+            @update:value="settings.update({ updateChecksEnabled: $event })"
+          />
+        </div>
       </section>
 
       <section

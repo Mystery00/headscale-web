@@ -4,6 +4,7 @@ import { NButton, NSelect } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
+import { HEADSCALE_REPOSITORY_URL } from '@/config/app'
 import {
   useRefreshAll,
   useSystemHealthQuery,
@@ -60,13 +61,28 @@ function onTheme(value: ThemePreference) {
       <Server :size="13" class="status-bar__instance-icon" aria-hidden="true" />
       <span class="status-bar__instance">{{ instanceLabel }}</span>
     </div>
-    <StatusBadge
-      :label="versionLabel"
-      tone="info"
-      :aria-label="`${t('shell.version')}: ${versionLabel}`"
-    />
+    <a
+      class="status-bar__version-link"
+      :href="HEADSCALE_REPOSITORY_URL"
+      target="_blank"
+      rel="noopener noreferrer"
+      :aria-label="t('shell.headscaleRepository', { version: versionLabel })"
+      :title="t('shell.headscaleRepository', { version: versionLabel })"
+    >
+      <StatusBadge
+        :label="versionLabel"
+        tone="info"
+        :aria-label="`${t('shell.version')}: ${versionLabel}`"
+      />
+    </a>
     <StatusBadge :label="databaseLabel" :tone="databaseTone" />
-    <NButton size="small" quaternary :aria-label="t('shell.refresh')" class="status-bar__action-btn" @click="refreshAll">
+    <NButton
+      size="small"
+      quaternary
+      :aria-label="t('shell.refresh')"
+      class="status-bar__action-btn"
+      @click="refreshAll"
+    >
       <template #icon>
         <RefreshCw :size="14" aria-hidden="true" />
       </template>
@@ -99,6 +115,22 @@ function onTheme(value: ThemePreference) {
   gap: 0.65rem;
   align-items: center;
   min-width: 0;
+}
+
+.status-bar__version-link {
+  display: inline-flex;
+  border-radius: 999px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.status-bar__version-link:hover {
+  text-decoration: underline;
+}
+
+.status-bar__version-link:focus-visible {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 3px;
 }
 
 .status-bar__instance-capsule {

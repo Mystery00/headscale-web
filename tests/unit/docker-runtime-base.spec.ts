@@ -117,7 +117,7 @@ describe.runIf(enabled)('Docker runtime base path', () => {
     const response = await expectApplicationAt(origin, '/admin/')
 
     expect(response.headers.get('content-security-policy')).toBe(
-      "default-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'",
+      "default-src 'self'; connect-src 'self' https://api.github.com; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'",
     )
   })
 

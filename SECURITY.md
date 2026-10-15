@@ -47,6 +47,7 @@ The Settings page makes a read-only `GET /api/v1/apikey` request to identify the
 - Set `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, and a restrictive `frame-ancestors` policy.
 - Do not expose Headscale's API directly to untrusted origins.
 - Do not use wildcard CORS or `connect-src *`.
+- Automatic Headscale Web update checks contact `https://api.github.com` with cookies omitted and no referrer, Headscale URL, API key, or resource data. GitHub can see standard connection metadata, including the public IP address. Checks can be disabled in Settings → Application updates. Packaged CSP policies allow this exact GitHub API origin; restricted deployments may omit it.
 
 ## Sensitive information
 

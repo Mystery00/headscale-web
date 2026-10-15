@@ -38,6 +38,7 @@ Try the latest released build without installing anything:
 - English and Simplified Chinese interface
 - Light, dark, and system themes
 - Configurable refresh polling
+- Repository links and optional automatic Headscale Web update notifications
 - Headscale URL pre-filled from the browser origin when no URL has been saved
 - Read-only API key expiration status with a 30-day warning and manual replacement guidance
 - Deployable as static files or a multi-architecture Docker image
@@ -46,6 +47,12 @@ Try the latest released build without installing anything:
 ## Compatibility
 
 The current release line targets **Headscale `0.29.x`** and uses the Headscale `v0.29.3` API schema as its contract baseline.
+
+Compatibility checks completed on **2026-10-15**:
+
+- **`0.29.4` and `0.29.5`:** the upstream Swagger, Protobuf definitions, and generated Go API/Gateway code are unchanged from `0.29.3`. No frontend API adaptation was required.
+- **`0.29.5`:** the current project was verified against a live server for connection and version detection, dashboard data, user and node lists/details, node search, refresh, route status, pre-authentication key listing, and API key expiration status. Revoking a temporary API key correctly returned the UI to the connection page.
+- **Validation limits:** this live check did not exercise resource creation, modification, deletion, route approval, or node authentication approval. `0.29.4` was reviewed at the contract/code level but was not separately tested against a live server.
 
 Other Headscale versions are not currently supported. Headscale Web validates the server version when connecting and rejects incompatible versions rather than silently operating against an unknown API contract.
 
@@ -88,6 +95,14 @@ Headscale Web runs entirely in the browser. The browser must therefore hold the 
 - Access controls such as Authelia, Authentik, OAuth2 Proxy, or Cloudflare Access can restrict who opens the UI, but they do not replace the Headscale API key.
 
 Read [`SECURITY.md`](SECURITY.md) before exposing the application outside a trusted network.
+
+## Update notifications
+
+The Headscale version badge opens the upstream repository, and the sidebar logo and title open the Headscale Web repository, both in a new tab.
+
+Release builds automatically check GitHub for the latest stable **Headscale Web** release when the management interface opens. Results (including failed checks) are cached in the browser for 24 hours. A newer release adds an **Update available** link beside the frontend version; it opens the release notes and does not install anything. Development builds (`dev`) and unrecognized version strings skip the check.
+
+Disable this behavior under **Settings → Application updates** for offline or restricted environments. The GitHub request does not include your Headscale URL, API key, resource data, cookies, or referrer; GitHub still receives ordinary connection metadata such as your public IP. Failed checks do not interrupt administration. Custom CSP policies must allow `https://api.github.com` in `connect-src` for detection to work; see [Deployment](docs/deploy.md#update-checks-and-content-security-policy).
 
 ## Static releases
 

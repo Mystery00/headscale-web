@@ -1,5 +1,5 @@
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { NConfigProvider, NDialogProvider, NMessageProvider, NNotificationProvider } from 'naive-ui'
 import { delay, http, HttpResponse } from 'msw'
 import { createPinia, setActivePinia } from 'pinia'
@@ -71,10 +71,28 @@ describe('AppShell', () => {
   })
 
   it('renders navigation, main content, and the frontend version', async () => {
-    await renderShell('/')
+    const { container } = await renderShell('/')
     expect(screen.getByRole('navigation', { name: 'Primary navigation' })).toBeTruthy()
     expect(screen.getByRole('main')).toBeTruthy()
-    expect(screen.getByText('dev')).toBeTruthy()
+    expect(within(container.querySelector<HTMLElement>('.app-nav')!).getByText('dev')).toBeTruthy()
+  })
+
+  it('links the brand and server version to their respective repositories in new tabs', async () => {
+    await renderShell('/users')
+    const brand = screen.getByRole('link', {
+      name: 'Headscale Web repository (opens in a new tab)',
+    })
+    expect(brand.getAttribute('href')).toBe('https://github.com/Mystery00/headscale-web')
+    expect(brand.querySelector('img')).toBeTruthy()
+    const version = await screen.findByRole('link', {
+      name: 'Headscale 0.29.3 repository (opens in a new tab)',
+    })
+    expect(version.getAttribute('href')).toBe('https://github.com/juanfont/headscale')
+    for (const link of [brand, version]) {
+      expect(link.getAttribute('target')).toBe('_blank')
+      expect(link.getAttribute('rel')).toContain('noopener')
+      expect(link.getAttribute('rel')).toContain('noreferrer')
+    }
   })
 
   it('opens the navigation drawer from the mobile menu button', async () => {
@@ -105,10 +123,14 @@ describe('AppShell', () => {
   })
 
   it('shows instance status with version and database badges', async () => {
-    await renderShell('/')
+    const { container } = await renderShell('/')
     expect(await screen.findByLabelText('Version: 0.29.3')).toBeTruthy()
     await waitFor(() => {
-      expect(screen.getByText('Database connected')).toBeTruthy()
+      expect(
+        within(container.querySelector<HTMLElement>('.status-bar')!).getByText(
+          'Database connected',
+        ),
+      ).toBeTruthy()
     })
     expect(screen.getByText('http://hs.example.com')).toBeTruthy()
   })

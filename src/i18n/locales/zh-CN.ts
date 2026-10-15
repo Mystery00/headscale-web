@@ -210,6 +210,13 @@ export const zhCN = {
     unapprovedRoutes: '已通告未审批',
   },
 
+  updates: {
+    title: '应用更新',
+    enabled: '自动检查更新',
+    hint: '进入控制台时检查 GitHub 上的 Headscale Web 最新正式版，检测结果（包括失败）缓存 24 小时。开发版本不检查更新。',
+    privacy:
+      '请求 api.github.com，不携带 Headscale 地址、API Key、资源数据、Cookie 或来源地址。GitHub 仍可看到 IP 地址等常规连接信息。离线或受限环境可关闭此功能。',
+  },
   settings: {
     title: '设置',
     description: '配置 Headscale 连接、数据刷新方式和控制台外观。',
@@ -304,6 +311,10 @@ export const zhCN = {
     },
   },
   shell: {
+    appRepository: 'Headscale Web 仓库（在新标签页打开）',
+    headscaleRepository: 'Headscale {version} 仓库（在新标签页打开）',
+    updateAvailable: '有更新',
+    updateAvailableVersion: '有新版本：{version}（在新标签页打开）',
     disconnect: '断开连接',
     consoleLabel: '管理控制台',
     version: '版本',

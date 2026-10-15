@@ -10,6 +10,7 @@ export interface AppSettings {
   baseUrl: string | null
   credentialPersistence: CredentialPersistence
   pollingEnabled: boolean
+  updateChecksEnabled: boolean
   pollingIntervalMs: number
   locale: LocaleCode
   theme: ThemePreference
@@ -50,6 +51,7 @@ function defaultSettings(): AppSettings {
     baseUrl: null,
     credentialPersistence: 'session',
     pollingEnabled: true,
+    updateChecksEnabled: true,
     pollingIntervalMs: DEFAULT_POLLING_INTERVAL_MS,
     locale: detectLocale(),
     theme: 'system',
@@ -82,6 +84,10 @@ function loadSettings(): AppSettings {
       : defaults.credentialPersistence,
     pollingEnabled:
       typeof stored.pollingEnabled === 'boolean' ? stored.pollingEnabled : defaults.pollingEnabled,
+    updateChecksEnabled:
+      typeof stored.updateChecksEnabled === 'boolean'
+        ? stored.updateChecksEnabled
+        : defaults.updateChecksEnabled,
     pollingIntervalMs: clampInterval(stored.pollingIntervalMs),
     locale: isLocale(localeFromKey)
       ? localeFromKey
@@ -115,6 +121,8 @@ export const useSettingsStore = defineStore('settings', {
       if (patch.credentialPersistence !== undefined)
         this.credentialPersistence = patch.credentialPersistence
       if (patch.pollingEnabled !== undefined) this.pollingEnabled = patch.pollingEnabled
+      if (typeof patch.updateChecksEnabled === 'boolean')
+        this.updateChecksEnabled = patch.updateChecksEnabled
       if (patch.pollingIntervalMs !== undefined)
         this.pollingIntervalMs = clampInterval(patch.pollingIntervalMs)
       if (patch.locale !== undefined && isLocale(patch.locale)) this.locale = patch.locale

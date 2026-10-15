@@ -14,6 +14,7 @@ describe('useSettingsStore', () => {
     expect(store.baseUrl).toBeNull()
     expect(store.credentialPersistence).toBe('session')
     expect(store.pollingEnabled).toBe(true)
+    expect(store.updateChecksEnabled).toBe(true)
     expect(store.pollingIntervalMs).toBe(15_000)
     expect(store.theme).toBe('system')
     expect(store.dateTimeStyle).toBe('absolute')
@@ -26,6 +27,7 @@ describe('useSettingsStore', () => {
       baseUrl: 'https://hs.example.com',
       credentialPersistence: 'local',
       pollingEnabled: false,
+      updateChecksEnabled: false,
       pollingIntervalMs: 30_000,
       locale: 'zh-CN',
       theme: 'dark',
@@ -37,12 +39,21 @@ describe('useSettingsStore', () => {
     expect(second.baseUrl).toBe('https://hs.example.com')
     expect(second.credentialPersistence).toBe('local')
     expect(second.pollingEnabled).toBe(false)
+    expect(second.updateChecksEnabled).toBe(false)
     expect(second.pollingIntervalMs).toBe(30_000)
     expect(second.locale).toBe('zh-CN')
     expect(second.theme).toBe('dark')
     expect(second.dateTimeStyle).toBe('relative')
     expect(localStorage.getItem(STORAGE_KEYS.locale)).toBe('zh-CN')
     expect(localStorage.getItem(STORAGE_KEYS.theme)).toBe('dark')
+  })
+
+  it('defaults update checking on for legacy or invalid stored preferences', () => {
+    for (const updateChecksEnabled of [undefined, 'false', null, 0]) {
+      localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify({ updateChecksEnabled }))
+      setActivePinia(createPinia())
+      expect(useSettingsStore().updateChecksEnabled).toBe(true)
+    }
   })
 
   it('clamps polling interval to the minimum', () => {
