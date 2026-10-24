@@ -63,6 +63,7 @@ export const zhCN = {
     title: '节点',
     description: '查看设备连接、归属、地址、标签和过期状态。',
     allStatuses: '全部状态',
+    taggedDevices: '标签设备',
     owner: '归属用户',
     allUsers: '全部用户',
     overview: '概览',

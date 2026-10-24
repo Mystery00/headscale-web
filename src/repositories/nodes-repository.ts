@@ -22,12 +22,13 @@ function nodePath(nodeId: string, suffix = '') {
 async function readNode(
   http: HeadscaleHttp,
   path: string,
-  extra?: { body?: unknown },
+  extra?: { body?: unknown; query?: Record<string, string> },
 ): Promise<Node> {
   const body = (await http.request({
     path,
     method: 'POST',
     body: extra?.body,
+    query: extra?.query,
     authenticated: true,
   })) as { node?: components['schemas']['v1Node'] } | undefined
   if (!body?.node) throw new Error('missing node')
@@ -62,10 +63,13 @@ export function createNodesRepository(http: HeadscaleHttp): NodesRepository {
       return readNode(http, `${nodePath(nodeId)}/expire`, { body: {} })
     },
     setExpiry(nodeId, expiry) {
-      return readNode(http, `${nodePath(nodeId)}/expire`, { body: { expiry: expiry.toISOString() } })
+      // Headscale 0.29.x's expiry endpoint reads query parameters, not a JSON body.
+      return readNode(http, `${nodePath(nodeId)}/expire`, {
+        query: { expiry: expiry.toISOString() },
+      })
     },
     disableExpiry(nodeId) {
-      return readNode(http, `${nodePath(nodeId)}/expire`, { body: { disableExpiry: true } })
+      return readNode(http, `${nodePath(nodeId)}/expire`, { query: { disableExpiry: 'true' } })
     },
     setTags(nodeId, tags) {
       return readNode(http, `${nodePath(nodeId)}/tags`, { body: { tags } })

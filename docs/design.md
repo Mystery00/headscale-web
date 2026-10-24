@@ -146,6 +146,10 @@ Users can be listed, inspected, created, renamed, and deleted. Destructive actio
 
 Nodes expose identity, owner, addresses, online state, registration method, tags, expiry, routes, and selected key metadata. The UI supports renaming, expiry changes, tag updates, and deletion.
 
+Headscale `0.29.x` tagged nodes use tags as their identity rather than a real user. List responses substitute the synthetic `tagged-devices` user (ID `2147455555`), while detail and mutation responses can return a null or omitted user. The mapper normalizes both forms to a nullable owner. The UI labels them as tagged devices, keeps them searchable and filterable, and excludes them from real-user node counts. Successful tagged-node mutations still invalidate the node caches.
+
+The expiry endpoint accepts `expiry` and `disableExpiry` as query parameters, not JSON body fields. The repository sends an ISO timestamp for a scheduled expiry or `disableExpiry=true` to remove expiry; immediate expiry sends neither option. These methods follow the existing `v0.29.3` contract, also checked against `v0.29.6`; no API schema or supported-version range change is needed.
+
 Machine, node, and discovery key values are treated as sensitive infrastructure data. The UI avoids encouraging unnecessary copying of full values.
 
 ### Routes

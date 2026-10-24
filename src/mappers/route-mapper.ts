@@ -18,7 +18,7 @@ export function mapRoutesFromNodes(nodes: Node[]): RouteView[] {
         id: `${node.id}:${prefix}`,
         nodeId: node.id,
         nodeName: node.givenName || node.name,
-        userName: node.user.name,
+        userName: node.user?.name ?? '',
         prefix,
         advertised: node.availableRoutes.includes(prefix),
         approved: node.approvedRoutes.includes(prefix),

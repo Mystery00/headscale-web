@@ -19,6 +19,33 @@ describe('NodesRepository writes', () => {
   afterEach(() => server.resetHandlers())
   afterAll(() => server.close())
 
+  it.each([
+    { name: 'rename', suffix: '/rename/gateway', run: () => repo().rename('42', 'gateway') },
+    { name: 'tags', suffix: '/tags', run: () => repo().setTags('42', ['tag:server']) },
+    { name: 'expiry', suffix: '/expire', run: () => repo().expireNow('42') },
+    {
+      name: 'routes',
+      suffix: '/approve_routes',
+      run: () => repo().setApprovedRoutes('42', ['10.0.0.0/8']),
+    },
+  ])('accepts a tagged node without a user after $name', async ({ suffix, run }) => {
+    server.use(
+      http.post(`${BASE_URL}/api/v1/node/42${suffix}`, () =>
+        HttpResponse.json({ node: { ...node, user: null, tags: ['tag:server'] } }),
+      ),
+    )
+    await expect(run()).resolves.toMatchObject({ id: '42', user: null, tags: ['tag:server'] })
+  })
+
+  it('reads a tagged node without a user', async () => {
+    server.use(
+      http.get(`${BASE_URL}/api/v1/node/42`, () =>
+        HttpResponse.json({ node: { ...node, user: null, tags: ['tag:server'] } }),
+      ),
+    )
+    await expect(repo().get('42')).resolves.toMatchObject({ id: '42', user: null })
+  })
+
   it('expires immediately with an empty JSON object', async () => {
     let payload: unknown
     server.use(

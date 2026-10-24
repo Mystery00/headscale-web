@@ -10,7 +10,7 @@ export interface Node {
   nodeKey: string
   discoKey: string
   ipAddresses: string[]
-  user: User
+  user: User | null
   lastSeen: Date | null
   expiry: Date | null
   createdAt: Date

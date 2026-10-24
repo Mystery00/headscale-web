@@ -129,6 +129,7 @@ export const enUS = {
     title: 'Nodes',
     description: 'Monitor connected devices, ownership, addressing, tags, and expiry.',
     allStatuses: 'All statuses',
+    taggedDevices: 'Tagged devices',
     owner: 'Owner',
     allUsers: 'All users',
     overview: 'Overview',

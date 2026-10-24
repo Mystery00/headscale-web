@@ -103,7 +103,7 @@ async function runReject() {
         </div>
         <div>
           <dt>{{ t('nodes.user') }}</dt>
-          <dd>{{ registeredNode.user.name }}</dd>
+          <dd>{{ registeredNode.user?.name ?? t('nodes.taggedDevices') }}</dd>
         </div>
         <div>
           <dt>{{ t('nodes.ip') }}</dt>
