@@ -26,6 +26,7 @@ import { useListViewState } from '@/composables/use-list-view-state'
 import { formatDateTime } from '@/domain/datetime'
 import type { Node } from '@/domain/node'
 import { normalizeTags } from '@/domain/tags'
+import { TAGGED_DEVICES_USER_ID } from '@/mappers/node-mapper'
 import { useNodesQuery, useUsersQuery } from '@/query/use-headscale-queries'
 import { useSettingsStore } from '@/stores/settings'
 import {
@@ -84,7 +85,8 @@ const ownerOptions = computed(() => {
   const owners = new Map<string, string>()
   for (const user of users.data.value ?? []) owners.set(user.id, user.name)
   for (const node of query.data.value ?? []) {
-    if (!owners.has(node.user.id)) owners.set(node.user.id, node.user.name)
+    const id = node.user?.id ?? TAGGED_DEVICES_USER_ID
+    if (!owners.has(id)) owners.set(id, node.user?.name ?? t('nodes.taggedDevices'))
   }
   return [
     { label: t('nodes.allUsers'), value: '' },
@@ -101,9 +103,10 @@ const filtered = computed(() => {
       status.value === 'all' ||
       (status.value === 'online' && node.online) ||
       (status.value === 'offline' && !node.online)
-    const matchesOwner = !ownerId.value || node.user.id === ownerId.value
+    const matchesOwner =
+      !ownerId.value || (node.user?.id ?? TAGGED_DEVICES_USER_ID) === ownerId.value
     const haystack =
-      `${node.givenName} ${node.name} ${node.user.name} ${node.ipAddresses.join(' ')} ${node.tags.join(' ')}`.toLowerCase()
+      `${node.givenName} ${node.name} ${ownerName(node)} ${node.ipAddresses.join(' ')} ${node.tags.join(' ')}`.toLowerCase()
     return matchesStatus && matchesOwner && (!term || haystack.includes(term))
   })
 })
@@ -118,6 +121,10 @@ function open(node: Node) {
   selected.value = node
   renameValue.value = node.givenName || node.name
   tagsValue.value = node.tags.join(', ')
+}
+
+function ownerName(node: Node) {
+  return node.user?.name ?? t('nodes.taggedDevices')
 }
 
 function routeCount(node: Node) {
@@ -150,9 +157,9 @@ const columns = computed<DataTableColumns<Node>>(() => [
     title: t('nodes.user'),
     key: 'user',
     width: 130,
-    sorter: (left, right) => left.user.name.localeCompare(right.user.name),
+    sorter: (left, right) => ownerName(left).localeCompare(ownerName(right)),
     sortOrder: listView.sortOrderFor('user'),
-    render: (node) => node.user.name,
+    render: (node) => ownerName(node),
   },
   {
     title: t('nodes.ip'),
@@ -226,30 +233,37 @@ const columns = computed<DataTableColumns<Node>>(() => [
   },
 ])
 
-async function run(action: () => Promise<unknown>, onSuccess?: () => void) {
+async function run<T>(action: () => Promise<T>, onSuccess?: (result: T) => void) {
   try {
-    await action()
+    const result = await action()
     message.success(t('common.success'))
-    onSuccess?.()
+    onSuccess?.(result)
   } catch {
     notification.error({ title: t('common.failed') })
   }
 }
 
+function updateSelected(node: Node) {
+  if (selected.value?.id === node.id) selected.value = node
+}
+
 function onRename() {
   if (!selected.value) return
-  void run(() =>
-    renameNode.mutateAsync({ nodeId: selected.value!.id, newName: renameValue.value.trim() }),
+  void run(
+    () => renameNode.mutateAsync({ nodeId: selected.value!.id, newName: renameValue.value.trim() }),
+    updateSelected,
   )
 }
 
 function onSetTags() {
   if (!selected.value) return
-  void run(() =>
-    setTags.mutateAsync({
-      nodeId: selected.value!.id,
-      tags: normalizeTags(tagsValue.value.split(',')),
-    }),
+  void run(
+    () =>
+      setTags.mutateAsync({
+        nodeId: selected.value!.id,
+        tags: normalizeTags(tagsValue.value.split(',')),
+      }),
+    updateSelected,
   )
 }
 
@@ -257,7 +271,8 @@ function onExpire() {
   if (!selected.value) return
   void run(
     () => expireNow.mutateAsync(selected.value!.id),
-    () => {
+    (node) => {
+      updateSelected(node)
       confirmExpire.value = false
     },
   )
@@ -356,7 +371,7 @@ function onDelete() {
               </div>
               <div>
                 <dt>{{ t('nodes.user') }}</dt>
-                <dd>{{ selected.user.name }}</dd>
+                <dd>{{ ownerName(selected) }}</dd>
               </div>
               <div>
                 <dt>{{ t('nodes.registerMethod') }}</dt>

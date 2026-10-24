@@ -275,7 +275,7 @@ const kpiCards = computed(() => [
               <WifiOff :size="16" class="attention-item__icon attention-item__icon--warning" aria-hidden="true" />
               <div class="attention-item__copy">
                 <strong>{{ node.givenName || node.name }}</strong>
-                <span>{{ node.user.name }} · {{ node.ipAddresses[0] ?? '' }} · {{ t('dashboard.offlineList') }}</span>
+                <span>{{ node.user?.name ?? t('nodes.taggedDevices') }} · {{ node.ipAddresses[0] ?? '' }} · {{ t('dashboard.offlineList') }}</span>
               </div>
               <ChevronRight :size="16" class="attention-item__arrow" aria-hidden="true" />
             </RouterLink>

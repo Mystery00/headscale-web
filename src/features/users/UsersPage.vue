@@ -78,7 +78,7 @@ const nodeCounts = computed(() => {
   if (!nodes.data.value) return null
   const counts = new Map<string, number>()
   for (const node of nodes.data.value) {
-    counts.set(node.user.id, (counts.get(node.user.id) ?? 0) + 1)
+    if (node.user) counts.set(node.user.id, (counts.get(node.user.id) ?? 0) + 1)
   }
   return counts
 })
@@ -93,7 +93,8 @@ function openUserNodes(user: User) {
 
 const relatedNodeCount = computed(() =>
   nodes.isSuccess.value && !nodes.isFetching.value
-    ? (nodes.data.value?.filter((node) => node.user.id === selected.value?.id).length ?? 0)
+    ? (nodes.data.value?.filter((node) => node.user && node.user.id === selected.value?.id)
+        .length ?? 0)
     : null,
 )
 const relatedNodeCountLabel = computed(() => relatedNodeCount.value ?? t('common.unavailable'))

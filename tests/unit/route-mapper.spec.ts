@@ -3,6 +3,20 @@ import { mapNode } from '@/mappers/node-mapper'
 import { mapRoutesFromNodes } from '@/mappers/route-mapper'
 
 describe('mapRoutesFromNodes', () => {
+  it('derives routes for a tagged node without a user', () => {
+    const node = mapNode({
+      id: '5',
+      name: 'gateway',
+      user: null,
+      tags: ['tag:router'],
+      createdAt: '2024-01-02T03:04:05Z',
+      availableRoutes: ['10.0.0.0/8'],
+    })
+    expect(mapRoutesFromNodes([node])).toEqual([
+      expect.objectContaining({ nodeId: '5', userName: '', prefix: '10.0.0.0/8' }),
+    ])
+  })
+
   it('derives advertised, approved, serving, and exit flags', () => {
     const node = mapNode({
       id: '5',

@@ -13,8 +13,19 @@ export function mapRegisterMethod(
   return 'unspecified'
 }
 
-export function mapNode(dto: components['schemas']['v1Node']): Node {
-  if (!dto.user) throw new Error('missing user')
+// ListNodes substitutes this synthetic user for tagged nodes in Headscale 0.29.x.
+export const TAGGED_DEVICES_USER_ID = '2147455555'
+
+// The Swagger schema omits the null emitted by detail and mutation responses.
+type NodeDto = Omit<components['schemas']['v1Node'], 'user'> & {
+  user?: components['schemas']['v1User'] | null
+}
+
+export function mapNode(dto: NodeDto): Node {
+  const tags = dto.tags ?? []
+  const user =
+    dto.user && !(tags.length && dto.user.id === TAGGED_DEVICES_USER_ID) ? mapUser(dto.user) : null
+  if (!user && !tags.length) throw new Error('missing user')
   return {
     id: requireId(dto.id),
     name: dto.name ?? '',
@@ -23,13 +34,13 @@ export function mapNode(dto: components['schemas']['v1Node']): Node {
     nodeKey: dto.nodeKey ?? '',
     discoKey: dto.discoKey ?? '',
     ipAddresses: dto.ipAddresses ?? [],
-    user: mapUser(dto.user),
+    user,
     lastSeen: parseOptionalDate(dto.lastSeen),
     expiry: parseOptionalDate(dto.expiry),
     createdAt: parseRequiredDate(dto.createdAt),
     registerMethod: mapRegisterMethod(dto.registerMethod),
     online: Boolean(dto.online),
-    tags: dto.tags ?? [],
+    tags,
     approvedRoutes: dto.approvedRoutes ?? [],
     availableRoutes: dto.availableRoutes ?? [],
     subnetRoutes: dto.subnetRoutes ?? [],
