@@ -1,8 +1,11 @@
+import { policyZh } from './policy'
 export const zhCN = {
+  policy: policyZh,
   app: {
     title: 'Headscale Web',
   },
   nav: {
+    policy: '访问策略',
     dashboard: '总览',
     users: '用户',
     nodes: '节点',

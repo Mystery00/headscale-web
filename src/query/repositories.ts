@@ -5,6 +5,7 @@ import { createNodesRepository } from '@/repositories/nodes-repository'
 import { createPreAuthKeysRepository } from '@/repositories/preauth-keys-repository'
 import { createSystemRepository } from '@/repositories/system-repository'
 import { createUsersRepository } from '@/repositories/users-repository'
+import { createPolicyRepository } from '@/repositories/policy-repository'
 import { credentialStore } from '@/stores/credentials'
 import { useSettingsStore } from '@/stores/settings'
 
@@ -14,6 +15,7 @@ export function createAppRepositories() {
     getApiKey: () => credentialStore.getApiKey(),
   })
   return {
+    policy: createPolicyRepository(http),
     system: createSystemRepository(http),
     apiKeys: createApiKeysRepository(http),
     auth: createAuthRepository(http),

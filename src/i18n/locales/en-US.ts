@@ -1,8 +1,11 @@
+import { policyEn } from './policy'
 export const enUS = {
+  policy: policyEn,
   app: {
     title: 'Headscale Web',
   },
   nav: {
+    policy: 'Access policy',
     dashboard: 'Dashboard',
     users: 'Users',
     nodes: 'Nodes',

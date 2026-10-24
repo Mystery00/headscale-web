@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { KeyRound, LayoutDashboard, Network, Server, Settings, Users } from '@lucide/vue'
+import { KeyRound, LayoutDashboard, Network, Server, Settings, Shield, Users } from '@lucide/vue'
 import { NMenu } from 'naive-ui'
 import { computed, h } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -62,6 +62,11 @@ const options = computed(() => [
     label: linkLabel('/preauth-keys', t('nav.preAuthKeys')),
     key: '/preauth-keys',
     icon: iconNode(KeyRound),
+  },
+  {
+    label: linkLabel('/policy', t('nav.policy')),
+    key: '/policy',
+    icon: iconNode(Shield),
   },
   {
     label: linkLabel('/settings', t('nav.settings')),

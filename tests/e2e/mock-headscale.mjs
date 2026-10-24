@@ -1,4 +1,5 @@
 import { createServer } from 'node:http'
+import { parse } from 'jsonc-parser'
 
 const port = Number(process.env.MOCK_HEADSCALE_PORT || 18080)
 const state = {
@@ -7,6 +8,9 @@ const state = {
   users: [{ id: '1', name: 'alice', createdAt: '2024-01-02T03:04:05Z' }],
   nodes: [],
   authRequests: ['hskey-authreq-abcdefghijklmnopqrstuvwx'],
+  policy: '{}',
+  policyMode: 'database',
+  policyWrites: [],
 }
 
 function json(res, status, body) {
@@ -29,6 +33,10 @@ const server = createServer(async (req, res) => {
     json(res, 204, {})
     return
   }
+  if (req.method === 'GET' && url.pathname === '/__mock') {
+    json(res, 200, state)
+    return
+  }
   if (req.method === 'POST' && url.pathname === '/__mock') {
     const chunks = []
     for await (const chunk of req) chunks.push(chunk)
@@ -44,6 +52,27 @@ const server = createServer(async (req, res) => {
   if (state.failAuth || auth !== 'Bearer good-key') {
     unauthorized(res)
     return
+  }
+  if (req.method === 'GET' && url.pathname === '/api/v1/policy') {
+    return json(res, 200, { policy: state.policy })
+  }
+  if (
+    (req.method === 'POST' && url.pathname === '/api/v1/policy/check') ||
+    (req.method === 'PUT' && url.pathname === '/api/v1/policy')
+  ) {
+    const chunks = []
+    for await (const chunk of req) chunks.push(chunk)
+    const body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
+    if (req.method === 'PUT' && state.policyMode === 'file')
+      return json(res, 400, { code: 3, message: 'policy update is disabled in file mode' })
+    const errors = []
+    parse(body.policy, errors, { allowTrailingComma: true })
+    if (errors.length) return json(res, 400, { code: 3, message: 'invalid policy syntax' })
+    if (req.method === 'PUT') {
+      state.policy = body.policy
+      state.policyWrites.push(body.policy)
+    }
+    return json(res, 200, req.method === 'PUT' ? { policy: state.policy } : {})
   }
   if (req.method === 'GET' && url.pathname === '/api/v1/health') {
     json(res, 200, { databaseConnectivity: true })
@@ -115,6 +144,6 @@ const server = createServer(async (req, res) => {
   json(res, 404, { message: 'not found' })
 })
 
-server.listen(port, () => {
+server.listen(port, '127.0.0.1', () => {
   console.log(`mock headscale on ${port}`)
 })

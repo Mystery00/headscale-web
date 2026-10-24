@@ -27,7 +27,6 @@ Headscale Web intentionally does not include:
 - Local accounts, SSO, or role-based access control
 - Multi-instance management
 - Headscale API key management
-- ACL or HuJSON editing
 - Direct access to the Headscale database or configuration files
 - Runtime adaptation across multiple incompatible Headscale API versions
 
@@ -271,7 +270,7 @@ Tests cover domain mapping, URL and credential behavior, API request shapes, err
 - The browser must hold the Headscale API key.
 - Only one Headscale instance is active at a time.
 - Only Headscale `0.29.x` is currently supported.
-- ACL management is not included.
+- 策略工作台支持可视化与 HuJSON 编辑、校验及受控发布；文件模式只支持读取、校验和导出，不直接写服务器文件。详细设计见 [访问策略工作台](superpowers/specs/2026-10-24-policy-design.md)。
 - There is no built-in identity, authorization, or audit backend.
 - Online status uses polling rather than server push.
 

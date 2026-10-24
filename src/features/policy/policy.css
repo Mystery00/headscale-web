@@ -1,0 +1,267 @@
+.policy-page {
+  --policy-border: var(--admin-border);
+}
+.policy-page button,
+.policy-page input,
+.policy-page select,
+.policy-page textarea {
+  font: inherit;
+}
+.policy-page button {
+  cursor: pointer;
+}
+.policy-page button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.policy-page button:focus-visible,
+.policy-page input:focus-visible,
+.policy-page textarea:focus-visible,
+.policy-page select:focus-visible {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
+}
+.policy-page h2 {
+  font-size: 1.15rem;
+  margin: 0 0 0.6rem;
+}
+.policy-page h3 {
+  font-size: 1rem;
+}
+.policy-page p {
+  line-height: 1.6;
+}
+.policy-muted {
+  color: var(--admin-muted);
+  font-size: 0.85rem;
+}
+.policy-storage {
+  padding: 1rem 1.2rem;
+  border-left: 3px solid var(--admin-primary);
+  background: var(--admin-primary-soft);
+  border-radius: 4px;
+}
+.policy-storage p {
+  margin: 0 0 0.6rem;
+  max-width: 75rem;
+}
+.policy-storage label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.policy-tabs {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--policy-border);
+  padding-bottom: 0.8rem;
+}
+.policy-tabs button,
+.policy-sections button {
+  background: transparent;
+  color: var(--admin-muted);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.65rem 0.85rem;
+  text-align: left;
+}
+.policy-tabs button.active,
+.policy-sections button.active {
+  background: var(--admin-primary-soft);
+  color: var(--admin-primary);
+  border-color: var(--admin-primary);
+}
+.policy-tabs > span {
+  margin-left: auto;
+}
+.policy-workspace {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+.policy-sections {
+  display: grid;
+  gap: 0.4rem;
+  position: sticky;
+  top: 1rem;
+}
+.policy-section-body {
+  min-width: 0;
+}
+.policy-section-body fieldset {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  min-width: 0;
+  display: grid;
+  gap: 1rem;
+}
+.policy-field {
+  min-width: 0;
+  display: grid;
+  gap: 0.55rem;
+  align-content: start;
+}
+.policy-field--map,
+.policy-field--array,
+.policy-field--object {
+  padding: 1rem;
+  border: 1px solid var(--policy-border);
+  border-radius: 8px;
+}
+.policy-field__heading {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+.policy-field__heading label {
+  font-weight: 600;
+}
+.policy-field__heading .policy-link {
+  margin-left: auto;
+}
+.policy-page input:not([type='checkbox']),
+.policy-page select,
+.policy-page textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--policy-border);
+  border-radius: 6px;
+  padding: 0.65rem;
+  background: var(--admin-surface);
+  color: var(--admin-text);
+}
+.policy-page textarea {
+  resize: vertical;
+  font:
+    0.85rem/1.6 ui-monospace,
+    Consolas,
+    monospace;
+}
+.policy-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.policy-field--json {
+  grid-column: 1 / -1;
+}
+.policy-link {
+  width: fit-content;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 0.8rem !important;
+  color: var(--admin-primary);
+  text-decoration: underline;
+}
+.policy-button {
+  border: 1px solid var(--policy-border);
+  padding: 0.55rem 0.8rem;
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  border-radius: 6px;
+  width: fit-content;
+}
+.policy-add-key {
+  display: flex;
+  gap: 0.5rem;
+}
+.policy-add-key .policy-button {
+  flex-shrink: 0;
+}
+.policy-rule summary {
+  padding: 0.65rem 0;
+  cursor: pointer;
+}
+.policy-rule summary code {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+.policy-notice {
+  padding: 0.8rem;
+  background: var(--admin-primary-soft);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.policy-error {
+  color: var(--admin-danger);
+  font-size: 0.85rem;
+}
+.policy-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+}
+.policy-overview-card {
+  display: grid;
+  gap: 0.6rem;
+  min-width: 0;
+  text-align: left;
+  border: 1px solid var(--policy-border);
+  border-radius: 8px;
+  padding: 1rem;
+  color: var(--admin-text);
+  background: var(--admin-surface);
+}
+.policy-overview-card span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.8rem;
+  color: var(--admin-muted);
+}
+.policy-diff {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.policy-diff > div {
+  min-width: 0;
+}
+.policy-diff pre {
+  margin: 0;
+  padding: 1rem;
+  min-height: 12rem;
+  max-height: 38rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--policy-border);
+  border-radius: 6px;
+  font:
+    0.85rem/1.6 ui-monospace,
+    Consolas,
+    monospace;
+}
+.policy-diff > div:last-child pre {
+  border-color: var(--admin-primary);
+}
+.policy-footer {
+  border-top: 1px solid var(--policy-border);
+  padding-top: 0.8rem;
+}
+@media (max-width: 760px) {
+  .policy-workspace,
+  .policy-diff,
+  .policy-field-grid {
+    grid-template-columns: 1fr;
+  }
+  .policy-sections {
+    position: static;
+    display: flex;
+    overflow-x: auto;
+  }
+  .policy-sections button {
+    white-space: nowrap;
+  }
+  .policy-tabs > span {
+    width: 100%;
+    margin-left: 0;
+  }
+}
