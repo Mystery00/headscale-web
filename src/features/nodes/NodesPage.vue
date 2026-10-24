@@ -25,6 +25,7 @@ import { useMaskedKey } from '@/composables/use-masked-key'
 import { useListViewState } from '@/composables/use-list-view-state'
 import { formatDateTime } from '@/domain/datetime'
 import type { Node } from '@/domain/node'
+import { AppApiError, getApiErrorMessage } from '@/api/errors'
 import { normalizeTags } from '@/domain/tags'
 import { TAGGED_DEVICES_USER_ID } from '@/mappers/node-mapper'
 import { useNodesQuery, useUsersQuery } from '@/query/use-headscale-queries'
@@ -233,13 +234,21 @@ const columns = computed<DataTableColumns<Node>>(() => [
   },
 ])
 
-async function run<T>(action: () => Promise<T>, onSuccess?: (result: T) => void) {
+async function run<T>(
+  action: () => Promise<T>,
+  onSuccess?: (result: T) => void,
+  validationHint?: string,
+) {
   try {
     const result = await action()
     message.success(t('common.success'))
     onSuccess?.(result)
-  } catch {
-    notification.error({ title: t('common.failed') })
+  } catch (error) {
+    const hint = error instanceof AppApiError && error.kind === 'validation' ? validationHint : undefined
+    notification.error({
+      title: t('common.failed'),
+      content: [getApiErrorMessage(error), hint].filter(Boolean).join('\n') || undefined,
+    })
   }
 }
 
@@ -264,6 +273,7 @@ function onSetTags() {
         tags: normalizeTags(tagsValue.value.split(',')),
       }),
     updateSelected,
+    t('nodes.tagPolicyHint'),
   )
 }
 

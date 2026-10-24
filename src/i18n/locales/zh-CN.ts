@@ -91,6 +91,7 @@ export const zhCN = {
     expireNow: '立即过期',
     disableExpiry: '禁用过期',
     setTags: '设置标签',
+    tagPolicyHint: '请确认标签以 tag: 开头，并已在 Headscale 策略的 tagOwners 中声明且允许使用。',
   },
   routes: {
     title: '路由',

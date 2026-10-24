@@ -34,6 +34,16 @@ export class AppApiError extends Error {
   }
 }
 
+export function getApiErrorMessage(error: unknown): string | undefined {
+  if (!(error instanceof AppApiError)) return undefined
+  const details = error.details
+  if (details && typeof details === 'object' && 'message' in details) {
+    const message = details.message
+    if (typeof message === 'string' && message.trim()) return message.trim().slice(0, 500)
+  }
+  return error.message
+}
+
 function kindFromStatus(status: number): AppApiErrorKind {
   if (status === 401) return 'unauthorized'
   if (status === 403) return 'forbidden'

@@ -64,6 +64,26 @@ describe('tagged nodes across connected pages', () => {
   afterEach(() => server.resetHandlers())
   afterAll(() => server.close())
 
+  it('标签被拒绝时展示服务器原因和策略提示，并保留原节点归属', async () => {
+    mockNodes([taggedNode({ user: alice, tags: [] })])
+    const reason = 'requested tags [tag:missing] are invalid or not permitted'
+    server.use(
+      http.post('http://hs.example.com/api/v1/node/42/tags', () =>
+        HttpResponse.json({ code: 3, message: reason, details: [] }, { status: 400 }),
+      ),
+    )
+    await renderConnected('/nodes', NodesPage)
+    await screen.findByText('tagged-router')
+    await fireEvent.click(screen.getByRole('button', { name: 'Details' }))
+    await fireEvent.update(screen.getByLabelText('Set tags'), 'tag:missing')
+    await fireEvent.click(screen.getByRole('button', { name: 'Set tags' }))
+
+    expect(await screen.findByText(reason, { exact: false })).toBeTruthy()
+    expect(screen.getByText(/tagOwners/)).toBeTruthy()
+    expect(screen.getByText('alice', { selector: 'dd' })).toBeTruthy()
+    expect(screen.queryByText('Saved')).toBeNull()
+  })
+
   it('renders mixed owners and nullable tagged-node details without inventing a user', async () => {
     mockNodes()
     const { queryClient } = await renderConnected('/nodes', NodesPage)

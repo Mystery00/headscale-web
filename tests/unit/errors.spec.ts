@@ -1,5 +1,33 @@
 import { describe, expect, it } from 'vitest'
-import { mapHttpFailure } from '@/api/errors'
+import { getApiErrorMessage, mapHttpFailure } from '@/api/errors'
+
+describe('getApiErrorMessage', () => {
+  it('提取结构化错误原因，不展示整个响应或内部异常', () => {
+    expect(
+      getApiErrorMessage(
+        mapHttpFailure({
+          status: 400,
+          body: { message: '  invalid tags  ', details: ['private'] },
+        }),
+      ),
+    ).toBe('invalid tags')
+    expect(getApiErrorMessage(new Error('internal secret'))).toBeUndefined()
+  })
+
+  it.each([undefined, { message: 42 }, { message: '  ' }, '<html>proxy error</html>'])(
+    '没有有效服务端消息时回退到 HTTP 状态',
+    (body) => {
+      expect(getApiErrorMessage(mapHttpFailure({ status: 502, body }))).toBe('HTTP 502')
+    },
+  )
+
+  it('限制错误消息长度', () => {
+    expect(
+      getApiErrorMessage(mapHttpFailure({ status: 400, body: { message: 'x'.repeat(1000) } }))
+        ?.length,
+    ).toBeLessThanOrEqual(500)
+  })
+})
 
 describe('mapHttpFailure', () => {
   it('maps 401 to unauthorized', () => {

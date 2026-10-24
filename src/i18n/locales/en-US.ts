@@ -157,6 +157,8 @@ export const enUS = {
     expireNow: 'Expire now',
     disableExpiry: 'Disable expiry',
     setTags: 'Set tags',
+    tagPolicyHint:
+      'Check that tags start with tag: and are declared and permitted in the Headscale policy tagOwners.',
   },
   routes: {
     title: 'Routes',

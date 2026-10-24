@@ -50,6 +50,27 @@ test.beforeEach(async () => {
   await resetMock()
 })
 
+test('标签校验失败时显示服务器原因和策略提示', async ({ page }, testInfo) => {
+  await connect(page)
+  const reason = 'requested tags [tag:missing] are invalid or not permitted'
+  await page.route(`${headscale}/api/v1/node/42/tags`, (route) =>
+    route.fulfill({
+      status: 400,
+      contentType: 'application/json',
+      headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify({ code: 3, message: reason, details: [] }),
+    }),
+  )
+  await page.goto('/nodes')
+  await page.getByRole('button', { name: 'Details', exact: true }).click()
+  await page.getByRole('textbox', { name: 'Set tags' }).fill('tag:missing')
+  await page.getByRole('button', { name: 'Set tags', exact: true }).click()
+  await expect(page.getByText(reason, { exact: false })).toBeVisible()
+  await expect(page.getByText(/tagOwners/)).toBeVisible()
+  await expect(page.getByRole('textbox', { name: 'Set tags' })).toHaveValue('tag:missing')
+  await page.screenshot({ path: testInfo.outputPath('tag-validation-error.png'), animations: 'disabled' })
+})
+
 test('renders every authenticated page on desktop', async ({ page }) => {
   await connect(page)
 
