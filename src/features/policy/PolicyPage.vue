@@ -6,7 +6,7 @@ import { NAlert, NButton, NSpin, useMessage } from 'naive-ui'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import { getApiErrorMessage } from '@/api/errors'
-import { editPolicy, type PolicyPath } from '@/domain/policy-document'
+import { editPolicy, isObject, type PolicyPath } from '@/domain/policy-document'
 import { createAppRepositories } from '@/query/repositories'
 import { useSettingsStore } from '@/stores/settings'
 import { credentialStore } from '@/stores/credentials'
@@ -57,6 +57,30 @@ const canCheck = computed(
 const canPublish = computed(
   () => canCheck.value && dirty.value && validated.value && database.value,
 )
+const publishBlockers = computed(() => {
+  const list: string[] = []
+  if (!dirty.value) list.push(t('policy.publishBlockers.noChanges'))
+  if (!validated.value) list.push(t('policy.publishBlockers.notValidated'))
+  if (!database.value) list.push(t('policy.publishBlockers.notDatabase'))
+  return list
+})
+const baselineLines = computed(() => (baseline.value?.policy ?? '').split('\n'))
+const draftLines = computed(() => draft.value.split('\n'))
+const baselineLineSet = computed(() => new Set(baselineLines.value))
+const draftLineSet = computed(() => new Set(draftLines.value))
+
+function summarizeField(key: string): string {
+  if (!parsed.value.value || !Object.hasOwn(parsed.value.value, key)) return t('policy.unset')
+  const val = parsed.value.value[key]
+  if (Array.isArray(val)) {
+    return val.length ? t('policy.summaryCount', { count: val.length }) : t('policy.summaryEmpty')
+  }
+  if (isObject(val)) {
+    const keys = Object.keys(val)
+    return keys.length ? t('policy.summaryCount', { count: keys.length }) : t('policy.summaryEmpty')
+  }
+  return String(val)
+}
 function errorText(reason: unknown) {
   const known: Record<string, string> = {
     PolicyConflict: 'conflict',
@@ -167,7 +191,9 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload))
       <p v-if="!loaded">{{ t('policy.loadFailed') }}</p></NAlert
     >
     <NAlert v-if="uncertain" type="warning">{{ t('policy.uncertain') }}</NAlert>
-    <NSpin v-if="!loaded && busy" />
+    <div v-if="!loaded && busy" class="policy-loading">
+      <NSpin size="large" />
+    </div>
     <template v-if="loaded">
       <div class="policy-storage">
         <p>{{ t('policy.storageHint') }}</p>
@@ -188,42 +214,59 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload))
         >
           {{ t(`policy.${tab}`) }}
         </button>
-        <span class="policy-muted" role="status"
+        <span
+          class="policy-status"
+          :class="{
+            'policy-status--dirty': dirty && !validated,
+            'policy-status--valid': validated,
+          }"
+          role="status"
           >{{ dirty ? t('policy.dirty') : t('policy.clean') }} ·
           {{ validated ? t('policy.validated') : t('policy.notValidated') }}</span
         >
       </div>
       <NAlert v-if="buffered" type="warning">{{ t('policy.buffered') }}</NAlert>
       <NAlert v-if="parsed.error" type="error">{{ t('policy.syntax') }}: {{ parsed.error }}</NAlert>
-      <div v-if="view === 'overview'" class="policy-overview">
+      <div v-if="view === 'overview'" class="admin-card policy-panel policy-overview">
         <h2>{{ t('policy.summary') }}</h2>
-        <p>{{ t('policy.semanticHint') }}</p>
+        <p class="policy-muted">{{ t('policy.semanticHint') }}</p>
         <div class="policy-overview-grid">
           <button
             v-for="item in policySections"
             :key="item.id"
+            type="button"
             class="policy-overview-card"
             @click="openSection(item.id)"
           >
             <strong>{{ t(`policy.sections.${item.id}`) }}</strong>
-            <span v-for="key in item.fields" :key="key"
-              ><code>{{ key }}</code
-              >:
-              {{
-                parsed.value && Object.hasOwn(parsed.value, key)
-                  ? JSON.stringify(parsed.value[key])
-                  : t('policy.unset')
-              }}</span
-            >
+            <div class="policy-overview-card__fields">
+              <div v-for="key in item.fields" :key="key" class="policy-overview-card__row">
+                <code>{{ key }}</code>
+                <span
+                  class="policy-overview-badge"
+                  :class="{
+                    'is-defined': parsed.value && Object.hasOwn(parsed.value, key),
+                  }"
+                >
+                  {{ summarizeField(key) }}
+                </span>
+              </div>
+            </div>
           </button>
         </div>
-        <p v-if="unknownKeys.length">{{ t('policy.unknown') }}: {{ unknownKeys.join(', ') }}</p>
+        <p v-if="unknownKeys.length" class="policy-muted">
+          {{ t('policy.unknown') }}: {{ unknownKeys.join(', ') }}
+        </p>
       </div>
-      <div v-if="!parsed.error && view === 'visual'" class="policy-workspace">
+      <div
+        v-if="!parsed.error && view === 'visual'"
+        class="admin-card policy-panel policy-workspace"
+      >
         <nav class="policy-sections" :aria-label="t('policy.summary')">
           <button
             v-for="item in policySections"
             :key="item.id"
+            type="button"
             :class="{ active: section === item.id }"
             :disabled="buffered"
             :aria-pressed="section === item.id"
@@ -249,8 +292,10 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload))
           </fieldset>
         </div>
       </div>
-      <div v-if="view === 'source'" class="policy-source">
-        <label for="policy-source">{{ t('policy.sourceLabel') }}</label>
+      <div v-if="view === 'source'" class="admin-card policy-panel policy-source">
+        <label for="policy-source" class="policy-source__label">{{
+          t('policy.sourceLabel')
+        }}</label>
         <p class="policy-muted">{{ t('policy.sourceHint') }}</p>
         <textarea
           id="policy-source"
@@ -260,22 +305,39 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload))
           rows="24"
         />
       </div>
-      <div v-if="view === 'review'" class="policy-review">
-        <p v-if="!dirty">{{ t('policy.noChanges') }}</p>
+      <div v-if="view === 'review'" class="admin-card policy-panel policy-review">
+        <p v-if="!dirty" class="policy-muted">{{ t('policy.noChanges') }}</p>
         <div class="policy-diff">
           <div>
             <h3>{{ t('policy.before') }}</h3>
-            <pre>{{ baseline?.policy }}</pre>
+            <pre><span
+                v-for="(line, idx) in baselineLines"
+                :key="idx"
+                class="policy-diff-line"
+                :class="{ 'is-removed': dirty && !draftLineSet.has(line) }"
+              >{{ line }}
+</span></pre>
           </div>
           <div>
             <h3>{{ t('policy.after') }}</h3>
-            <pre>{{ draft }}</pre>
+            <pre><span
+                v-for="(line, idx) in draftLines"
+                :key="idx"
+                class="policy-diff-line"
+                :class="{ 'is-added': dirty && !baselineLineSet.has(line) }"
+              >{{ line }}
+</span></pre>
           </div>
         </div>
         <p class="policy-muted">{{ t('policy.raceWarning') }}</p>
-        <NButton type="primary" :disabled="!canPublish" @click="confirm = true">{{
-          t('policy.publish')
-        }}</NButton>
+        <div class="policy-publish-bar">
+          <NButton type="primary" :disabled="!canPublish" @click="confirm = true">{{
+            t('policy.publish')
+          }}</NButton>
+          <ul v-if="publishBlockers.length" class="policy-publish-blockers">
+            <li v-for="item in publishBlockers" :key="item">{{ item }}</li>
+          </ul>
+        </div>
       </div>
       <p class="policy-muted policy-footer">{{ t('policy.noAutoSave') }}</p>
     </template>

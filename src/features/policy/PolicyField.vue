@@ -9,6 +9,7 @@ const props = defineProps<{
   value: unknown
   path: PolicyPath
   structureLocked?: boolean
+  hideHeading?: boolean
 }>()
 const emit = defineEmits<{
   edit: [path: PolicyPath, value: unknown]
@@ -104,6 +105,12 @@ function remove() {
   localError.value = ''
   update(undefined)
 }
+function removeItem(index: number) {
+  if (props.structureLocked) return
+  const itemPath = [...props.path, index]
+  emit('invalid', itemPath.join('.'), false)
+  emit('edit', itemPath, undefined)
+}
 function ruleSummary(item: unknown): string {
   if (!isObject(item)) return ''
   return [item.src, item.dst, item.target]
@@ -115,8 +122,11 @@ function ruleSummary(item: unknown): string {
 </script>
 
 <template>
-  <div class="policy-field" :class="`policy-field--${schema.kind}`">
-    <div class="policy-field__heading">
+  <div
+    class="policy-field"
+    :class="[`policy-field--${schema.kind}`, { 'policy-field--headless': hideHeading }]"
+  >
+    <div v-if="!hideHeading" class="policy-field__heading">
       <label :for="id"
         ><code>{{ path.at(-1) }}</code></label
       >
@@ -255,13 +265,25 @@ function ruleSummary(item: unknown): string {
     <template v-else-if="schema.kind === 'array'">
       <p v-if="!items.length" class="policy-notice">{{ t('policy.emptyArray') }}</p>
       <details v-for="(item, index) in items" :key="index" class="policy-rule" open>
-        <summary>
-          {{ t('policy.rule') }} {{ index + 1 }}
-          <code>{{ ruleSummary(item) }}</code>
+        <summary class="policy-rule__summary">
+          <span class="policy-rule__title">
+            <strong>{{ t('policy.rule') }} {{ index + 1 }}</strong>
+            <code v-if="ruleSummary(item)">{{ ruleSummary(item) }}</code>
+          </span>
+          <button
+            type="button"
+            class="policy-link"
+            :aria-label="`${t('policy.unsetField')} ${[...path, index].join('.')}`"
+            :disabled="structureLocked"
+            @click.stop="removeItem(index)"
+          >
+            {{ t('policy.unsetField') }}
+          </button>
         </summary>
         <PolicyField
           :schema="schema.item!"
           :structure-locked="structureLocked"
+          :hide-heading="true"
           :value="item"
           :path="[...path, index]"
           @edit="(p, v) => emit('edit', p, v)"

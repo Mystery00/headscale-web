@@ -63,6 +63,13 @@ export const policyEn = {
   noAutoSave: 'Draft only · no automatic publishing',
   buffered: 'Fix the invalid form value before switching sections or publishing.',
   summary: 'Policy sections',
+  summaryCount: '{count} items',
+  summaryEmpty: 'Empty (0 items)',
+  publishBlockers: {
+    noChanges: 'Make changes to the draft before publishing.',
+    notValidated: 'Validate the current draft before publishing.',
+    notDatabase: 'Confirm database policy storage above before publishing.',
+  },
   semanticHint:
     'Omitted access rules and empty access rule lists have different semantics. No defaults are inserted. Server validation is authoritative and may depend on current nodes and users.',
   sections: {
@@ -151,6 +158,13 @@ export const policyZh = {
   noAutoSave: '仅修改草稿 · 不会自动发布',
   buffered: '表单中有无效输入，请修正后再切换分区或发布。',
   summary: '策略分区',
+  summaryCount: '{count} 项',
+  summaryEmpty: '空（0 项）',
+  publishBlockers: {
+    noChanges: '请先修改草稿内容再发布。',
+    notValidated: '发布前请先点击“校验策略”并通过校验。',
+    notDatabase: '发布前请先勾选上方“服务器已使用数据库策略存储”。',
+  },
   semanticHint:
     '未定义访问规则与规则列表为空的含义不同，页面不会自动插入默认规则。服务器校验为准，校验可能依赖当前节点与用户状态。',
   sections: {
