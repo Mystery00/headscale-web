@@ -34,6 +34,7 @@ Try the latest released build without installing anything:
 - Node inspection, renaming, expiry management, tags, and deletion
 - Advertised and approved route management, including exit routes
 - Pre-authentication key creation, expiry, and deletion
+- Access policy (ACL / HuJSON) workbench with visual configuration, source editing, validation, diff review, and draft export
 - Front-proxy-assisted new-node registration and existing-node re-authentication approval
 - English and Simplified Chinese interface
 - Light, dark, and system themes
@@ -46,18 +47,6 @@ Try the latest released build without installing anything:
 
 ## Compatibility
 
-### 访问策略工作台
-
-通过导航中的“访问策略”查看策略，在可视化表单和 HuJSON 文本之间切换。表单覆盖 Headscale 0.29.6 的访问规则（Grants/ACL）、标签声明、用户组、主机别名、SSH、自动审批、节点属性、策略测试和全局选项。动态 `grants.app` 能力结构使用 JSON 编辑框。
-
-编辑只进入内存草稿，切换视图不会自动发布。未知字段和未触及的注释会保留；删除字段会删除其内部注释。`未定义`、空集合与 `false` 保持区别。关闭页面前请保存或导出草稿。
-
-- **文件存储：** 可读取和校验，编辑后导出 `headscale-policy.hujson`，由管理员在服务器部署并重载。
-- **数据库存储：** 确认服务器已经使用数据库策略存储，校验草稿、查看变更后，显式确认发布。页面上的选项不会切换服务器配置。
-- **冲突与失败：** 发布前会重新读取并比较服务器内容。冲突时保留草稿，先导出再重新读取并核对。写入结果不明确时必须重新读取，避免重复提交。Headscale 没有原子版本比较写入接口，仍需避免多人同时发布。
-
-本功能通过模拟接口与浏览器端到端测试验证；没有使用生产环境策略写入作为测试。策略语义、身份引用与具体节点能力仍以目标服务器校验为准。
-
 The current release line targets **Headscale `0.29.x`** and uses the Headscale `v0.29.3` API schema as its contract baseline.
 
 Compatibility checks completed on **2026-10-15**:
@@ -67,6 +56,16 @@ Compatibility checks completed on **2026-10-15**:
 - **Validation limits:** this live check did not exercise resource creation, modification, deletion, route approval, or node authentication approval. `0.29.4` was reviewed at the contract/code level but was not separately tested against a live server.
 
 Other Headscale versions are not currently supported. Headscale Web validates the server version when connecting and rejects incompatible versions rather than silently operating against an unknown API contract.
+
+### Access policy workbench
+
+Open **Access policy** from the navigation sidebar to view and edit policies, switching seamlessly between visual forms and raw HuJSON source. The visual editor covers Headscale `0.29.6` access rules (`grants` and legacy `acls`), `tagOwners`, `groups`, `hosts`, `ssh`, `autoApprovers`, `nodeAttrs`, policy tests (`tests` and `sshTests`), and global options (`randomizeClientPort`). Dynamic `grants.app` capability structures are edited as embedded JSON.
+
+All edits stay in an in-memory draft—switching views never triggers an automatic write. Unknown fields and untouched comments are preserved when editing through the visual form, while omitted fields, empty collections (`[]` / `{}`), and `false` remain explicitly distinct. Save or export your draft before leaving or closing the page.
+
+- **File storage mode:** Supports reading and server-side validation. Export `headscale-policy.hujson` and deploy it on the server manually.
+- **Database storage mode:** Confirm that the server already uses database policy storage, validate the current draft, review the diff, and explicitly confirm publishing. The confirmation checkbox in the UI does not alter server configuration.
+- **Conflict and failure handling:** Before publishing, the server baseline is re-read to detect concurrent changes. On conflict, the local draft is preserved so you can export, reload, and reconcile it. Because Headscale does not expose an atomic compare-and-set endpoint, avoid simultaneous publishing from multiple administrators.
 
 ## Quick start with Docker
 

@@ -270,7 +270,7 @@ Tests cover domain mapping, URL and credential behavior, API request shapes, err
 - The browser must hold the Headscale API key.
 - Only one Headscale instance is active at a time.
 - Only Headscale `0.29.x` is currently supported.
-- 策略工作台支持可视化与 HuJSON 编辑、校验及受控发布；文件模式只支持读取、校验和导出，不直接写服务器文件。详细设计见 [访问策略工作台](superpowers/specs/2026-10-24-policy-design.md)。
+- The policy workbench supports visual and HuJSON editing, server-side validation, and controlled publishing for database-backed policies; file-mode servers support reading, validation, and draft export without writing server files directly.
 - There is no built-in identity, authorization, or audit backend.
 - Online status uses polling rather than server push.
 
