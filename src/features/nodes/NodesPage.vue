@@ -459,7 +459,7 @@ function onDelete() {
             <h2 class="drawer-section__title text-danger">
               <AlertTriangle :size="16" aria-hidden="true" />{{ t('nodes.dangerZone') }}
             </h2>
-            <p class="danger-desc">以下操作直接影响设备网络连通，请谨慎执行。</p>
+            <p class="danger-desc">{{ t('nodes.dangerDescription') }}</p>
             <div class="danger-actions">
               <NButton type="warning" secondary @click="confirmExpire = true">{{
                 t('nodes.expireNow')

@@ -110,7 +110,9 @@ const kpiCards = computed(() => [
     helper:
       offlineNodes.value.length > 0
         ? `${offlineNodes.value.length} ${t('dashboard.offlineNodes')}`
-        : `${Math.round((onlineNodes.value.length / (nodes.value.length || 1)) * 100)}% 节点在线`,
+        : t('dashboard.onlinePercent', {
+            pct: Math.round((onlineNodes.value.length / (nodes.value.length || 1)) * 100),
+          }),
     icon: Server,
     tone: offlineNodes.value.length ? ('warning' as const) : ('success' as const),
   },
@@ -118,7 +120,7 @@ const kpiCards = computed(() => [
     label: t('dashboard.users'),
     value: String(usersQuery.data.value?.length ?? 0),
     meta: t('dashboard.users'),
-    helper: `${nodes.value.length} 台设备归属管理`,
+    helper: t('dashboard.devicesManaged', { count: nodes.value.length }),
     icon: Users,
     tone: 'neutral' as const,
   },
@@ -128,8 +130,8 @@ const kpiCards = computed(() => [
     meta: `/ ${routes.value.filter((route) => route.advertised).length} ${t('routes.approved')}`,
     helper:
       pendingRoutes.value.length > 0
-        ? `${pendingRoutes.value.length} 条通告待审批`
-        : '子网路由全部生效运行',
+        ? t('dashboard.pendingApproval', { count: pendingRoutes.value.length })
+        : t('dashboard.allRoutesActive'),
     icon: Route,
     tone: pendingRoutes.value.length ? ('warning' as const) : ('success' as const),
   },
@@ -139,8 +141,8 @@ const kpiCards = computed(() => [
     meta: t('preAuthKeys.active'),
     helper:
       expiringKeys.value.length > 0
-        ? `${expiringKeys.value.length} 个密钥即将过期`
-        : '无即将过期凭证',
+        ? t('dashboard.expiringSoon', { count: expiringKeys.value.length })
+        : t('dashboard.noExpiring'),
     icon: KeyRound,
     tone: expiringKeys.value.length ? ('warning' as const) : ('neutral' as const),
   },
@@ -214,7 +216,7 @@ const kpiCards = computed(() => [
             <div class="network-list__item">
               <dt>
                 <Activity :size="15" class="network-list__icon" aria-hidden="true" />
-                控制台版本
+                {{ t('dashboard.consoleVersion') }}
               </dt>
               <dd>
                 <code class="version-badge">{{ appVersion }}</code>
@@ -223,10 +225,14 @@ const kpiCards = computed(() => [
             <div class="network-list__item">
               <dt>
                 <Database :size="15" class="network-list__icon" aria-hidden="true" />
-                数据库连通状态
+                {{ t('dashboard.databaseStatus') }}
               </dt>
               <dd class="text-success">
-                {{ healthQuery.data.value?.databaseConnectivity ? '连通正常 (Healthy)' : '连通异常' }}
+                {{
+                  healthQuery.data.value?.databaseConnectivity
+                    ? t('dashboard.databaseHealthy')
+                    : t('dashboard.databaseUnhealthy')
+                }}
               </dd>
             </div>
             <div class="network-list__item">
@@ -234,14 +240,14 @@ const kpiCards = computed(() => [
                 <Network :size="15" class="network-list__icon" aria-hidden="true" />
                 {{ t('dashboard.advertisedRoutes') }}
               </dt>
-              <dd>{{ routes.filter((route) => route.advertised).length }} 条子网</dd>
+              <dd>{{ t('dashboard.subnets', { count: routes.filter((route) => route.advertised).length }) }}</dd>
             </div>
             <div class="network-list__item">
               <dt>
                 <Route :size="15" class="network-list__icon" aria-hidden="true" />
                 {{ t('dashboard.approvedRoutes') }}
               </dt>
-              <dd>{{ routes.filter((route) => route.approved).length }} 条已生效</dd>
+              <dd>{{ t('dashboard.routesActive', { count: routes.filter((route) => route.approved).length }) }}</dd>
             </div>
           </dl>
         </section>
@@ -257,7 +263,7 @@ const kpiCards = computed(() => [
               <p>{{ t('dashboard.needsAttentionHint') }}</p>
             </div>
             <StatusBadge
-              :label="hasAttention ? `${offlineNodes.length + pendingRoutes.length} 项需处理` : t('dashboard.allClear')"
+              :label="hasAttention ? t('dashboard.attentionCount', { count: offlineNodes.length + pendingRoutes.length }) : t('dashboard.allClear')"
               :tone="hasAttention ? 'warning' : 'success'"
             />
           </header>
