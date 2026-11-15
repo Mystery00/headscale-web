@@ -3,7 +3,7 @@ import type { CredentialPersistence } from '@/domain/credentials'
 import { STORAGE_KEYS } from '@/domain/storage-keys'
 
 export type ThemePreference = 'light' | 'dark' | 'system'
-export type LocaleCode = 'zh-CN' | 'en-US'
+export type LocaleCode = 'zh-CN' | 'en-US' | 'ko-KR'
 export type DateTimeStyle = 'absolute' | 'relative'
 
 export interface AppSettings {
@@ -21,7 +21,7 @@ export const POLLING_INTERVAL_PRESETS_MS = [5_000, 10_000, 15_000, 30_000, 60_00
 export const DEFAULT_POLLING_INTERVAL_MS = 15_000
 export const MIN_POLLING_INTERVAL_MS = 5_000
 
-const LOCALES: readonly LocaleCode[] = ['zh-CN', 'en-US']
+const LOCALES: readonly LocaleCode[] = ['zh-CN', 'en-US', 'ko-KR']
 const THEMES: readonly ThemePreference[] = ['light', 'dark', 'system']
 const DATE_STYLES: readonly DateTimeStyle[] = ['absolute', 'relative']
 const PERSISTENCE: readonly CredentialPersistence[] = ['session', 'local']
@@ -36,7 +36,9 @@ function isTheme(value: unknown): value is ThemePreference {
 
 function detectLocale(): LocaleCode {
   const language = globalThis.navigator?.language ?? 'en-US'
-  return language.toLowerCase().startsWith('zh') ? 'zh-CN' : 'en-US'
+  const lower = language.toLowerCase()
+  if (lower.startsWith('ko')) return 'ko-KR'
+  return lower.startsWith('zh') ? 'zh-CN' : 'en-US'
 }
 
 function clampInterval(value: unknown): number {

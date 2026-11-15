@@ -19,6 +19,7 @@ const healthQuery = useSystemHealthQuery()
 const refreshAll = useRefreshAll()
 
 const localeOptions = [
+  { label: '한국어', value: 'ko-KR' },
   { label: 'English', value: 'en-US' },
   { label: '中文', value: 'zh-CN' },
 ]
