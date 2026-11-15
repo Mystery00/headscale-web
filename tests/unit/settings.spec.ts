@@ -1,5 +1,5 @@
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { STORAGE_KEYS } from '@/domain/storage-keys'
 import { useSettingsStore } from '@/stores/settings'
 
@@ -18,7 +18,21 @@ describe('useSettingsStore', () => {
     expect(store.pollingIntervalMs).toBe(15_000)
     expect(store.theme).toBe('system')
     expect(store.dateTimeStyle).toBe('absolute')
-    expect(['zh-CN', 'en-US']).toContain(store.locale)
+    expect(['zh-CN', 'en-US', 'ko-KR']).toContain(store.locale)
+  })
+
+  it.each([
+    ['ko-KR', 'ko-KR'],
+    ['ko', 'ko-KR'],
+    ['zh-TW', 'zh-CN'],
+    ['fr-FR', 'en-US'],
+  ])('detects browser language %s as %s', (language, expected) => {
+    const spy = vi.spyOn(navigator, 'language', 'get').mockReturnValue(language)
+    try {
+      expect(useSettingsStore().locale).toBe(expected)
+    } finally {
+      spy.mockRestore()
+    }
   })
 
   it('persists and restores settings', () => {

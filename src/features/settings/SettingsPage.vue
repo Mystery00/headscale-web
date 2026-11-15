@@ -76,9 +76,9 @@ const intervalOptions = POLLING_INTERVAL_PRESETS_MS.map((ms) => ({
   value: ms,
 }))
 const localeOptions = [
-  { label: '한국어', value: 'ko-KR' },
   { label: 'English', value: 'en-US' },
   { label: '中文', value: 'zh-CN' },
+  { label: '한국어', value: 'ko-KR' },
 ]
 const themeOptions = computed(() => [
   { label: t('shell.themeLight'), value: 'light' },

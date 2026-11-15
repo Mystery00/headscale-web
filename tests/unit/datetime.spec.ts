@@ -21,4 +21,12 @@ describe('formatDateTime', () => {
     })
     expect(text.toLowerCase()).toMatch(/ago|minute/)
   })
+
+  it('formats a relative timestamp in Korean', () => {
+    const text = formatDateTime(new Date(Date.now() - 60_000), {
+      locale: 'ko-KR',
+      style: 'relative',
+    })
+    expect(text).toBe('1분 전')
+  })
 })
