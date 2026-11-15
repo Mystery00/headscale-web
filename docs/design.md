@@ -222,7 +222,7 @@ A static frontend cannot make an administrative API key secret from the browser.
 
 ## 12. Internationalization and accessibility
 
-Vue I18n provides `en-US` and `zh-CN`. User-facing strings belong in locale files rather than directly in components. API details may be shown for diagnostics, while the main message remains localized.
+Vue I18n provides `en-US`, `zh-CN`, and `ko-KR`. User-facing strings belong in locale files rather than directly in components. API details may be shown for diagnostics, while the main message remains localized.
 
 Dates, relative time, and numbers use the active locale. English is the final fallback locale.
 
