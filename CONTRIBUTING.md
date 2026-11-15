@@ -116,6 +116,10 @@ fix(nodes): show the failure reason when a tag update is rejected
 docs: describe subpath deployment
 ```
 
+## Release notes
+
+`CHANGELOG.md` holds the notes for the next release only, not the history of earlier versions. Before tagging a release, rewrite it to describe the user-visible changes since the previous version tag. The release workflow publishes the file as the body of the GitHub Release and fails when it is empty. Notes for earlier versions remain available on the [Releases](https://github.com/Mystery00/headscale-web/releases) page.
+
 ## Pull request expectations
 
 A good pull request includes:

@@ -133,6 +133,19 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout release notes
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: CHANGELOG.md
+          sparse-checkout-cone-mode: false
+
+      - name: Verify release notes
+        run: |
+          if ! grep -q '[^[:space:]]' CHANGELOG.md; then
+            echo "::error file=CHANGELOG.md::CHANGELOG.md is empty. Write the notes for ${GITHUB_REF_NAME} before tagging."
+            exit 1
+          fi
+
       - name: Download release assets
         uses: actions/download-artifact@v4
         with:
@@ -142,7 +155,7 @@ jobs:
       - name: Create release and upload static files
         uses: softprops/action-gh-release@v2
         with:
-          generate_release_notes: true
+          body_path: CHANGELOG.md
           prerelease: ${{ contains(github.ref_name, '-') }}
           files: |
             release-assets/headscale-web-static.tar.gz
