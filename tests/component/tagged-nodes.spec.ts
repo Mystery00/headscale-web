@@ -64,7 +64,7 @@ describe('tagged nodes across connected pages', () => {
   afterEach(() => server.resetHandlers())
   afterAll(() => server.close())
 
-  it('标签被拒绝时展示服务器原因和策略提示，并保留原节点归属', async () => {
+  it('shows the server reason and policy hint when tags are rejected and keeps the original node owner', async () => {
     mockNodes([taggedNode({ user: alice, tags: [] })])
     const reason = 'requested tags [tag:missing] are invalid or not permitted'
     server.use(

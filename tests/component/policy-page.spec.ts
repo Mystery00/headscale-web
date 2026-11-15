@@ -27,7 +27,7 @@ describe('PolicyPage', () => {
     )
     return writes
   }
-  it('表单更新同步文本并保留注释和未知字段，不发送写入', async () => {
+  it('syncs form updates to the text, preserves comments and unknown fields, and sends no writes', async () => {
     const writes = mockPolicy()
     await renderConnected('/policy', PolicyPage)
     await fireEvent.click(await screen.findByRole('button', { name: 'Tag owners' }))
@@ -40,7 +40,7 @@ describe('PolicyPage', () => {
     expect(editor.value).toContain('"future":42')
     expect(writes).toEqual([])
   })
-  it('校验、差异、明确确认后才发布，成功更新基线', async () => {
+  it('publishes only after validation, diff review, and explicit confirmation, then updates the baseline', async () => {
     const writes = mockPolicy('{}')
     await renderConnected('/policy', PolicyPage)
     await fireEvent.click(await screen.findByRole('button', { name: 'HuJSON editor' }))
@@ -55,7 +55,7 @@ describe('PolicyPage', () => {
     await waitFor(() => expect(writes).toEqual(['{"randomizeClientPort":true}']))
     await screen.findByText(/Draft matches server/)
   })
-  it('无效文本锁定可视化编辑与校验，但仍可导出', async () => {
+  it('locks visual editing and validation for invalid text but still allows export', async () => {
     mockPolicy('{}')
     await renderConnected('/policy', PolicyPage)
     await fireEvent.click(await screen.findByRole('button', { name: 'HuJSON editor' }))
@@ -69,7 +69,7 @@ describe('PolicyPage', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Visual configuration' }))
     expect(screen.queryByRole('button', { name: 'Tag owners' })).toBeNull()
   })
-  it('列表输入即时进入草稿且保留正在输入的换行', async () => {
+  it('applies list input to the draft immediately and keeps the line break being typed', async () => {
     mockPolicy()
     await renderConnected('/policy', PolicyPage)
     await fireEvent.click(await screen.findByRole('button', { name: 'Tag owners' }))
@@ -82,7 +82,7 @@ describe('PolicyPage', () => {
       'group:ops',
     )
   })
-  it('无效 app 输入不会被其他字段编辑覆盖，修正前不允许校验', async () => {
+  it('keeps invalid app input when other fields are edited and blocks validation until it is fixed', async () => {
     mockPolicy('{"grants":[{"src":["*"],"dst":["*"],"app":{}}]}')
     await renderConnected('/policy', PolicyPage)
     const app = (await screen.findByLabelText('grants.0.app')) as HTMLTextAreaElement
@@ -99,7 +99,7 @@ describe('PolicyPage', () => {
       (screen.getByRole('button', { name: 'Validate policy' }) as HTMLButtonElement).disabled,
     ).toBe(false)
   })
-  it('app 中重复属性也禁止校验，避免静默丢弃前值', async () => {
+  it('blocks validation for duplicate properties in app to avoid silently dropping the earlier value', async () => {
     mockPolicy('{"grants":[{"app":{}}]}')
     await renderConnected('/policy', PolicyPage)
     await fireEvent.update(await screen.findByLabelText('grants.0.app'), '{"cap":[1],"cap":[2]}')
@@ -107,7 +107,7 @@ describe('PolicyPage', () => {
       (screen.getByRole('button', { name: 'Validate policy' }) as HTMLButtonElement).disabled,
     ).toBe(true)
   })
-  it('无效输入期间阻止删除前序规则以免错配索引', async () => {
+  it('blocks removing earlier rules while input is invalid to avoid mismatched indexes', async () => {
     mockPolicy('{"grants":[{"app":{}},{"app":{}}]}')
     await renderConnected('/policy', PolicyPage)
     await fireEvent.update(await screen.findByLabelText('grants.1.app'), '{')
@@ -115,7 +115,7 @@ describe('PolicyPage', () => {
       (screen.getByRole('button', { name: 'Remove field grants.0' }) as HTMLButtonElement).disabled,
     ).toBe(true)
   })
-  it('确认重新读取相同服务器策略后重置无效输入缓冲', async () => {
+  it('resets the invalid input buffer after confirming a reload of the same server policy', async () => {
     mockPolicy('{"grants":[{"app":{}}]}')
     await renderConnected('/policy', PolicyPage)
     await fireEvent.update(await screen.findByLabelText('grants.0.app'), '{"cap":')
@@ -128,7 +128,7 @@ describe('PolicyPage', () => {
       (screen.getByRole('button', { name: 'Validate policy' }) as HTMLButtonElement).disabled,
     ).toBe(false)
   })
-  it('未知字段类型不会让规则摘要崩溃，保留原文供文本编辑', async () => {
+  it('does not crash the rule summary on unknown field types and keeps the source for text editing', async () => {
     mockPolicy('{"grants":[{"src":{"future":true},"dst":null}]}')
     await renderConnected('/policy', PolicyPage)
     expect(await screen.findAllByText(/unexpected type/)).toHaveLength(2)

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { getApiErrorMessage, mapHttpFailure } from '@/api/errors'
 
 describe('getApiErrorMessage', () => {
-  it('提取结构化错误原因，不展示整个响应或内部异常', () => {
+  it('extracts the structured error reason without exposing the whole response or internal exceptions', () => {
     expect(
       getApiErrorMessage(
         mapHttpFailure({
@@ -15,13 +15,13 @@ describe('getApiErrorMessage', () => {
   })
 
   it.each([undefined, { message: 42 }, { message: '  ' }, '<html>proxy error</html>'])(
-    '没有有效服务端消息时回退到 HTTP 状态',
+    'falls back to the HTTP status when there is no valid server message',
     (body) => {
       expect(getApiErrorMessage(mapHttpFailure({ status: 502, body }))).toBe('HTTP 502')
     },
   )
 
-  it('限制错误消息长度', () => {
+  it('limits the error message length', () => {
     expect(
       getApiErrorMessage(mapHttpFailure({ status: 400, body: { message: 'x'.repeat(1000) } }))
         ?.length,

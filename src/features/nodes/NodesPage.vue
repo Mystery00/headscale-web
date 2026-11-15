@@ -51,7 +51,7 @@ const deleteNode = useDeleteNodeMutation()
 
 function copyToClipboard(text: string) {
   void navigator.clipboard.writeText(text).then(() => {
-    message.success(t('common.copied', '已复制到剪贴板'))
+    message.success(t('common.copied'))
   })
 }
 const listView = useListViewState({
@@ -400,7 +400,7 @@ function onDelete() {
               <span class="key-label">{{ t('nodes.machineKey') }}</span>
               <div class="key-val">
                 <code>{{ mask(selected.machineKey) }}</code>
-                <NButton size="tiny" quaternary :aria-label="t('common.copy', '复制')" @click="copyToClipboard(selected.machineKey)">
+                <NButton size="tiny" quaternary :aria-label="t('common.copy')" @click="copyToClipboard(selected.machineKey)">
                   <template #icon><Copy :size="13" /></template>
                 </NButton>
               </div>
@@ -409,7 +409,7 @@ function onDelete() {
               <span class="key-label">{{ t('nodes.nodeKey') }}</span>
               <div class="key-val">
                 <code>{{ mask(selected.nodeKey) }}</code>
-                <NButton size="tiny" quaternary :aria-label="t('common.copy', '复制')" @click="copyToClipboard(selected.nodeKey)">
+                <NButton size="tiny" quaternary :aria-label="t('common.copy')" @click="copyToClipboard(selected.nodeKey)">
                   <template #icon><Copy :size="13" /></template>
                 </NButton>
               </div>
@@ -418,7 +418,7 @@ function onDelete() {
               <span class="key-label">{{ t('nodes.discoKey') }}</span>
               <div class="key-val">
                 <code>{{ mask(selected.discoKey) }}</code>
-                <NButton size="tiny" quaternary :aria-label="t('common.copy', '复制')" @click="copyToClipboard(selected.discoKey)">
+                <NButton size="tiny" quaternary :aria-label="t('common.copy')" @click="copyToClipboard(selected.discoKey)">
                   <template #icon><Copy :size="13" /></template>
                 </NButton>
               </div>

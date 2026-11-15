@@ -111,7 +111,7 @@ function edit(path: PolicyPath, value: unknown) {
   try {
     draft.value = editPolicy(draft.value, path, value)
     error.value = ''
-    // 删除父字段后同步清理子字段的输入错误。
+    // After a parent field is removed, also clear input errors of its child fields.
     if (value === undefined)
       invalidFields.value = new Set(
         [...invalidFields.value].filter(

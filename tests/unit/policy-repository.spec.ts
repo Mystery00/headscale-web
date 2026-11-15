@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { createHeadscaleHttp } from '@/api/http'
 import { createPolicyRepository } from '@/repositories/policy-repository'
 
-describe('策略接口合同', () => {
-  it('保持 HuJSON 原文，校验与保存使用不同端点且携带认证', async () => {
+describe('policy API contract', () => {
+  it('keeps the raw HuJSON and uses separate authenticated endpoints for validation and saving', async () => {
     const calls: { url: string; method: string; body: unknown; auth: string | null }[] = []
     const repo = createPolicyRepository(
       createHeadscaleHttp({
@@ -49,7 +49,7 @@ describe('策略接口合同', () => {
       },
     ])
   })
-  it('加载响应缺失策略时抛错而不是使用空策略', async () => {
+  it('throws instead of using an empty policy when the load response has no policy', async () => {
     const repo = createPolicyRepository({ request: async () => ({}) })
     await expect(repo.get()).rejects.toThrow()
   })

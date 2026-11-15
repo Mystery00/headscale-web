@@ -19,8 +19,8 @@ function setup() {
     },
   }
 }
-describe('策略草稿与发布保护', () => {
-  it('加载失败不允许校验或保存', async () => {
+describe('policy draft and publish protection', () => {
+  it('does not allow validation or saving after a load failure', async () => {
     const { repo, state } = setup()
     vi.mocked(repo.get).mockRejectedValue(new Error('offline'))
     await expect(state.load()).rejects.toThrow('offline')
@@ -29,7 +29,7 @@ describe('策略草稿与发布保护', () => {
     await expect(state.save()).rejects.toThrow()
     expect(repo.set).not.toHaveBeenCalled()
   })
-  it('校验中的旧响应不能使新草稿成为已校验状态', async () => {
+  it('does not mark a new draft as validated from a stale validation response', async () => {
     const { repo, state } = setup()
     await state.load()
     let resolve!: () => void
@@ -48,7 +48,7 @@ describe('策略草稿与发布保护', () => {
     await expect(state.save()).rejects.toThrow()
     expect(repo.set).not.toHaveBeenCalled()
   })
-  it('冲突中止写入并保留本地草稿', async () => {
+  it('aborts the write and keeps the local draft on conflict', async () => {
     const { repo, state, changeRemote } = setup()
     await state.load()
     state.draft.value = '{"grants":[]}'
@@ -58,7 +58,7 @@ describe('策略草稿与发布保护', () => {
     expect(repo.set).not.toHaveBeenCalled()
     expect(state.draft.value).toBe('{"grants":[]}')
   })
-  it('保存成功读取服务器原文并更新基线', async () => {
+  it('reads the server text and updates the baseline after a successful save', async () => {
     const { state } = setup()
     await state.load()
     state.draft.value = '{"tagOwners":{"tag:lab":[]}}'
@@ -67,7 +67,7 @@ describe('策略草稿与发布保护', () => {
     expect(state.dirty.value).toBe(false)
     expect(state.baseline.value?.policy).toBe('{"tagOwners":{"tag:lab":[]}}')
   })
-  it('保存被拒绝时保留草稿且失效校验；不自动重试', async () => {
+  it('keeps the draft and invalidates validation when saving is rejected, without retrying automatically', async () => {
     const { repo, state } = setup()
     await state.load()
     state.draft.value = '{"grants":[]}'
@@ -78,7 +78,7 @@ describe('策略草稿与发布保护', () => {
     expect(state.dirty.value).toBe(true)
     expect(state.validated.value).toBe(false)
   })
-  it('发布前读取期间草稿变化时中止写入', async () => {
+  it('aborts the write when the draft changes during the pre-publish read', async () => {
     const { repo, state } = setup()
     await state.load()
     state.draft.value = '{"grants":[]}'

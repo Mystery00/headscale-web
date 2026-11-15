@@ -56,7 +56,7 @@ test.beforeEach(async () => {
   })
 })
 
-test('全部字段可视化编辑后与文本同步，校验确认才发布', async ({ page }, info) => {
+test('syncs visual edits of every field to the text and publishes only after validation and confirmation', async ({ page }, info) => {
   await connect(page)
   const sections: [string, [string, string][]][] = [
     [
@@ -167,7 +167,7 @@ test('全部字段可视化编辑后与文本同步，校验确认才发布', as
   await page.screenshot({ path: info.outputPath('policy-review.png'), fullPage: true })
 })
 
-test('文件模式拒绝保存时展示服务器原因并保留草稿', async ({ page }) => {
+test('shows the server reason and keeps the draft when file mode rejects saving', async ({ page }) => {
   await fetch(`${server}/__mock`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -189,7 +189,7 @@ test('文件模式拒绝保存时展示服务器原因并保留草稿', async ({
   await expect(page.getByLabel('Policy source')).toHaveValue('{"tagOwners":{"tag:new":[]}}')
 })
 
-test('新增和删除字段保持空列表语义，支持导出并阻止意外离开', async ({ page }, info) => {
+test('keeps empty-list semantics when adding and removing fields, supports export, and blocks accidental leave', async ({ page }, info) => {
   await fetch(`${server}/__mock`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -215,7 +215,7 @@ test('新增和删除字段保持空列表语义，支持导出并阻止意外�
   await expect(page).toHaveURL(/\/policy$/)
 })
 
-test('策略表单和文本编辑器在移动宽度不撑破页面', async ({ page }, info) => {
+test('keeps the policy form and text editor within the page at mobile width', async ({ page }, info) => {
   await connect(page)
   await page.setViewportSize({ width: 390, height: 844 })
   await expect(page.getByRole('heading', { name: 'Access policy', exact: true })).toBeVisible()

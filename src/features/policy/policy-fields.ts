@@ -21,7 +21,7 @@ const map = (item: PolicyFieldSchema, placeholder: string): PolicyFieldSchema =>
   placeholder,
 })
 
-// 与 Headscale v0.29.6 的 policy/v2/types.go、test.go 保持一致。
+// Kept in sync with policy/v2/types.go and test.go in Headscale v0.29.6.
 export const policyFields: Record<string, PolicyFieldSchema> = {
   grants: array({
     src: list('group:ops'),

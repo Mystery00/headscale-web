@@ -50,7 +50,7 @@ test.beforeEach(async () => {
   await resetMock()
 })
 
-test('标签校验失败时显示服务器原因和策略提示', async ({ page }, testInfo) => {
+test('shows the server reason and policy hint when tag validation fails', async ({ page }, testInfo) => {
   await connect(page)
   const reason = 'requested tags [tag:missing] are invalid or not permitted'
   await page.route(`${headscale}/api/v1/node/42/tags`, (route) =>

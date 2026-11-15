@@ -64,7 +64,7 @@ export function createPolicyWorkbench(repo: PolicyRepository) {
       )
         throw new Error('PolicyConflict')
       if (revision.value !== captured) throw new Error('PolicyDraftChanged')
-      // PUT 可能已在服务器生效但响应丢失；需要重新读取才能再次发布。
+      // The PUT may have taken effect on the server even if the response was lost; a reload is required before publishing again.
       uncertain.value = true
       await repo.set(text)
       const saved = await repo.get()
