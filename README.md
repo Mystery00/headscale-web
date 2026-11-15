@@ -36,7 +36,7 @@ Try the latest released build without installing anything:
 - Pre-authentication key creation, expiry, and deletion
 - Access policy (ACL / HuJSON) workbench with visual configuration, source editing, validation, diff review, and draft export
 - Front-proxy-assisted new-node registration and existing-node re-authentication approval
-- English and Simplified Chinese interface
+- English, Simplified Chinese, and Korean interface
 - Light, dark, and system themes
 - Configurable refresh polling
 - Repository links and optional automatic Headscale Web update notifications

@@ -13,7 +13,7 @@ The current release line:
 - Supports Headscale `0.29.x`.
 - Uses the Headscale `v0.29.3` Swagger document as its API contract baseline.
 - Provides dashboards and management flows for users, nodes, routes, and pre-authentication keys.
-- Supports English and Simplified Chinese.
+- Supports English, Simplified Chinese, and Korean.
 - Can be served at `/` or under a subpath without rebuilding the static bundle.
 
 The product name is not tied to a Headscale version. Compatibility with a new Headscale API requires an explicit compatibility project, contract update, tests, and release notes.
@@ -223,6 +223,8 @@ A static frontend cannot make an administrative API key secret from the browser.
 ## 12. Internationalization and accessibility
 
 Vue I18n provides `en-US`, `zh-CN`, and `ko-KR`. User-facing strings belong in locale files rather than directly in components. API details may be shown for diagnostics, while the main message remains localized.
+
+The interface language is detected from the browser on first use (`zh*` selects `zh-CN`, `ko*` selects `ko-KR`, anything else selects `en-US`) and can be changed in the status bar or in Settings. The access policy workbench is not yet translated into Korean and uses the English text for `ko-KR`.
 
 Dates, relative time, and numbers use the active locale. English is the final fallback locale.
 
